@@ -31,8 +31,8 @@ public class GraphicsEngine
   private GameEngine gameEngine;
   private JFrame mainFrame;
   private CurrentScreen currentScreen;
-  private int cursorX;
-  private int cursorY;
+  private int mouseX;
+  private int mouseY;
   private boolean isAlive;
   
   //*Graphical variables*\\
@@ -83,8 +83,8 @@ public class GraphicsEngine
     panelWidth = centerJPanel.getWidth();
     panelHeight = centerJPanel.getHeight();
     
-    cursorX = 0;
-    cursorY = 0;
+    mouseX = 0;
+    mouseY = 0;
     this.cameraPosition = cameraPosition;
     this.resolution = resolution;
     this.helpMessageButton = helpMessageButton;
@@ -95,7 +95,6 @@ public class GraphicsEngine
     
     this.canvas = canvas;
     oDG = (Graphics2D) canvasGraphics;
-    g = oDG;
     
     ballDiameter = 30;
     
@@ -104,24 +103,23 @@ public class GraphicsEngine
   
   
   
-  
-  //------------------------------------------------------------------------------------------------------------------\\
 
   
   
-  public void drawEverything (CurrentScreen currentScreen) 
+  public void drawEverything (CurrentScreen currentScreen, Container container, BufferedImage offScreenCanvas) 
   {
+    mouseX = gameEngine.getMouseXPosition();
+    mouseY = gameEngine.getMouseYPosition();
     
-    
-    g = oDG;
+    Graphics2D context = (Graphics2D)offScreenCanvas.getGraphics();
     
     if( currentScreen == CurrentScreen.MAIN_SCREEN)
     {
-      drawForMainMenu();
+      drawForMainMenu(context);
     }
     else if(currentScreen == CurrentScreen.DEBUG)
     {
-      drawForDebug();
+      drawForDebug(context);
     }
     
     
@@ -129,15 +127,16 @@ public class GraphicsEngine
     {
       if( buttonsScreenContext.get(i) == currentScreen )
       {
-        buttonsToDraw.get(i).drawButton(buttonsToDraw.get(i).isCursorOn(cursorX, cursorY), g, cameraPosition);
+        buttonsToDraw.get(i).drawButton(buttonsToDraw.get(i).isCursorOn(mouseX, mouseY), context,
+              cameraPosition);
       }
     }
     
     
-    helpMessageButton.drawButton(true, g, cameraPosition);
+    helpMessageButton.drawButton(true, context, cameraPosition);
     
     
-    visableGraphics = centerJPanel.getGraphics();
+    visableGraphics = container.getGraphics();
     visableGraphics.drawImage (canvas, 0, 0, centerJPanel.getWidth(), centerJPanel.getHeight(), null); 
     
     
@@ -160,39 +159,26 @@ public class GraphicsEngine
   }
   
   
-  
-  
-  
-  
-  
-  public void updateCursors( int cursorX, int cursorY )
-  {
-    this.cursorX = cursorX;
-    this.cursorY = cursorY;
-  }
-  
-  
   public void loadButtonToDraw( EFButton button, CurrentScreen screenContext )
   {
     this.buttonsToDraw.add(button);
     this.buttonsScreenContext.add(screenContext);
   }
   
-  private void drawForMainMenu()
+  private void drawForMainMenu(Graphics2D c)
   {
-    g = oDG;
-    g.setColor(Color.black);
-    g.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+    c.setColor(Color.black);
+    c.fillRect(0, 0, gameEngine.getCanvasWidth(), gameEngine.getCanvasHeight());
   }
   
 
-  private void drawForDebug()
+  private void drawForDebug(Graphics2D c)
   {
-    g = oDG;
-    g.setColor(Color.black);
-    g.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
-    g.setColor(Color.red);
-    g.fillOval(cursorX - (ballDiameter / 2), cursorY - (ballDiameter / 2), ballDiameter, ballDiameter);
+    c.setColor(Color.black);
+    c.fillRect(0, 0, gameEngine.getCanvasWidth(), gameEngine.getCanvasHeight());
+    
+    c.setColor(Color.red);
+    c.fillOval(mouseX - (ballDiameter / 2), mouseY - (ballDiameter / 2), ballDiameter, ballDiameter);
   }
   
 }

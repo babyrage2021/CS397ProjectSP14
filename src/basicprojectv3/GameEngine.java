@@ -37,8 +37,8 @@ public class GameEngine extends Thread
   private boolean masterBool;
   private CurrentScreen currentScreen;
   private EFIniParser iniParser;
-  private int cursorX;
-  private int cursorY;
+  private int mouseX;
+  private int mouseY;
   
   private final int goalFPS = 60;
   private EFTimeTracker timeTracker;
@@ -73,6 +73,7 @@ public class GameEngine extends Thread
 
   private final String GRAPHICS_TAG = "Graphics Timer";
   
+  private final String CANVAS_TAG = "Offscreen canvas";
   private Dimension canvasSize;
   private int canvasWidth;
   private int canvasHeight;
@@ -90,8 +91,8 @@ public class GameEngine extends Thread
     masterBool = true;
     currentScreen = CurrentScreen.MAIN_SCREEN;
     iniParser = new EFIniParser("Resources/Settings.ini");
-    cursorX = 0;
-    cursorY = 0;
+    mouseX = 0;
+    mouseY = 0;
     cameraPosition = new EFCoord();
 
     timeTracker = new EFTimeTracker();
@@ -160,9 +161,13 @@ public class GameEngine extends Thread
     //<editor-fold defaultstate="collapsed" desc="DEBUG">
     EFButton.setDefaultBorderBuffer(5);
 
+    
+    EFButton.defaultDisplayType = DisplayType.TOP_LEFT;
+    this.iniStatus = new EFButton(canvasGraphics, 1, 1, iniParser.getValue("test"));
+    buttonsToDraw.add(iniStatus);
+    buttonsScreenContext.add(CurrentScreen.DEBUG);
+    
     EFButton.defaultDisplayType = DisplayType.TOP_RIGHT;
-    
-    
     toMainFromDebug = new EFButton(canvasGraphics, canvas.getWidth() - 1, 1, "Main Menu");
     buttonsToDraw.add(toMainFromDebug);
     buttonsScreenContext.add(CurrentScreen.DEBUG);
@@ -223,7 +228,7 @@ public class GameEngine extends Thread
       {
         
         timeTracker.feedInitialTime(GRAPHICS_TAG, System.currentTimeMillis());
-        graphicsEngine.drawEverything(currentScreen);
+        graphicsEngine.drawEverything(currentScreen, centerJPanel, canvas);
         timeTracker.feedFinalTime(GRAPHICS_TAG, System.currentTimeMillis());
         
       }
@@ -246,7 +251,7 @@ public class GameEngine extends Thread
 
   public void mouseMoved(MouseEvent e)
   {
-    getMousePositions(e);
+    calculateMousePositions(e);
   }
 
 
@@ -254,7 +259,7 @@ public class GameEngine extends Thread
 
   public void mouseDragged(MouseEvent e)
   {
-    getMousePositions(e);
+    calculateMousePositions(e);
   }
 
 
@@ -262,7 +267,7 @@ public class GameEngine extends Thread
 
   public void mouseExited(MouseEvent e)
   {
-    getMousePositions(e);
+    calculateMousePositions(e);
   }
 
 
@@ -270,7 +275,7 @@ public class GameEngine extends Thread
 
   public void mouseEntered(MouseEvent e)
   {
-    getMousePositions(e);
+    calculateMousePositions(e);
   }
 
 
@@ -278,7 +283,7 @@ public class GameEngine extends Thread
 
   public void mouseReleased(MouseEvent e)
   {
-    getMousePositions(e);
+    calculateMousePositions(e);
   }
 
 
@@ -286,18 +291,18 @@ public class GameEngine extends Thread
 
   public void mousePressed(MouseEvent e)
   {
-    getMousePositions(e);
+    calculateMousePositions(e);
     
     if(currentScreen == CurrentScreen.MAIN_SCREEN)
     {
-      if( toDebugFromMain.isCursorOn(cursorX, cursorY) )
+      if( toDebugFromMain.isCursorOn(mouseX, mouseY) )
       {
         currentScreen = CurrentScreen.DEBUG;
       }
     }
     else if(currentScreen == CurrentScreen.DEBUG)
     {
-      if( toMainFromDebug.isCursorOn(cursorX, cursorY))
+      if( toMainFromDebug.isCursorOn(mouseX, mouseY))
       {
         currentScreen = CurrentScreen.MAIN_SCREEN;
       }
@@ -309,7 +314,7 @@ public class GameEngine extends Thread
 
   public void mouseClicked(MouseEvent e)
   {
-    getMousePositions(e);
+    calculateMousePositions(e);
   }
 
 
@@ -348,11 +353,11 @@ public class GameEngine extends Thread
       {
         if (currentScreen == CurrentScreen.MAIN_SCREEN)
         {
-          if (toDebugFromMain.isCursorOn(cursorX, cursorY) && !helpMessageButton.shouldDraw)
+          if (toDebugFromMain.isCursorOn(mouseX, mouseY) && !helpMessageButton.shouldDraw)
           {
             helpMessageButton.setMessage(toDebugFromMain.getHelpMessage());
-            helpMessageButton.setX(cursorX + 5);
-            helpMessageButton.setY(cursorY + 5);
+            helpMessageButton.setX(mouseX + 5);
+            helpMessageButton.setY(mouseY + 5);
             helpMessageButton.shouldDraw = true;
           }
         }
@@ -361,17 +366,40 @@ public class GameEngine extends Thread
   }
   
   
+  public int getMouseXPosition()
+  {
+    return mouseX;
+  }
   
   
   
+  public int getMouseYPosition()
+  {
+    return mouseY;
+  }
   
-  private void getMousePositions(MouseEvent e)
+  
+  
+  public int getCanvasWidth()
+  {
+    return canvas.getWidth();
+  }
+  
+  
+  public int getCanvasHeight()
+  {
+    return canvas.getHeight();
+  }
+  
+  
+  
+  private void calculateMousePositions(MouseEvent e)
   {
     if (e.getSource() == centerJPanel)
     {
-      cursorX = Math.round((float)e.getX() * ((float)canvas.getWidth() / (float)centerJPanel.getWidth()));
-      cursorY = Math.round((float)e.getY() * ((float)canvas.getHeight() / (float)centerJPanel.getHeight()));
-      graphicsEngine.updateCursors(cursorX, cursorY);
+      mouseX = Math.round((float)e.getX() * ((float)canvas.getWidth() / (float)centerJPanel.getWidth()));
+      mouseY = Math.round((float)e.getY() * ((float)canvas.getHeight() / (float)centerJPanel.getHeight()));
+      //graphicsEngine.updateCursors(mouseX, mouseY);
     }
   }
 
