@@ -113,6 +113,10 @@ public class GraphicsEngine
     {
       drawForDebugViewDetails(context);
     }
+    else if(currentScreen == CurrentScreen.LOADING_BEFORE_LEVEL)
+    {
+      drawForLoadingBeforeLevel(context);
+    }
     
     //helpMessageButton.drawButton(false, context, cameraPosition);
     
@@ -157,39 +161,8 @@ public class GraphicsEngine
     c.fillOval(mouseX - (ballDiameter / 2), mouseY - (ballDiameter / 2), ballDiameter, ballDiameter);
     
     c.setColor(Color.yellow);
-    /*c.drawRect(1, 1, gameEngine.getCanvasWidth() - 2, gameEngine.getCanvasHeight() / 6);
-     * 
-     * c.drawRect(1, gameEngine.getCanvasHeight() / 6 + 2, gameEngine.getCanvasWidth() / 5,
-     * gameEngine.getCanvasHeight() - (gameEngine.getCanvasHeight() / 6 + 2));
-     * 
-     * c.drawRect(gameEngine.getCanvasWidth() / 5 + 2, gameEngine.getCanvasHeight() / 6 + 2,
-     * (int)((float)gameEngine.getCanvasWidth() / 2.5f),
-     * gameEngine.getCanvasHeight() / 6 + 2);
-     * 
-     * c.drawRect(gameEngine.getCanvasWidth() / 5 + 2 + (int)((float)gameEngine.getCanvasWidth() / 2.5f),
-     * gameEngine.getCanvasHeight() / 6 + 2,
-     * (int)((float)gameEngine.getCanvasWidth() / 2.5f) - 1,
-     * gameEngine.getCanvasHeight() / 6 + 2);
-     * 
-     * c.drawRect(gameEngine.getCanvasWidth() / 5 + 2,
-     * gameEngine.getCanvasHeight() / 6 + 2 + gameEngine.getCanvasHeight() / 6 + 2,
-     * (int)((float)gameEngine.getCanvasWidth() / 2.5f),
-     * gameEngine.getCanvasHeight() / 2 + 2);
-     * 
-     * c.drawRect(gameEngine.getCanvasWidth() / 5 + 2 + (int)((float)gameEngine.getCanvasWidth() / 2.5f),
-     * gameEngine.getCanvasHeight() / 6 + 2 + gameEngine.getCanvasHeight() / 6 + 2,
-     * (int)((float)gameEngine.getCanvasWidth() / 2.5f),
-     * (int)((float)gameEngine.getCanvasHeight() / 1.5) - 5);*/
     
-    for( int i = 0; i < buttonsToDraw.size(); i++ )
-    {
-      if( buttonsScreenContext.get(i) == CurrentScreen.DEBUG || 
-            buttonsScreenContext.get(i) == CurrentScreen.UNIVERSAL )
-      {
-        buttonsToDraw.get(i).drawButton(buttonsToDraw.get(i).isCursorOn(mouseX, mouseY), c,
-              cameraPosition);
-      }
-    }
+    drawButtons(c, CurrentScreen.DEBUG);
     
     c.setColor(new Color( Color.red.getRed(), Color.red.getGreen(), Color.red.getBlue(), 64));
     c.fillOval(mouseX - (ballDiameter / 2), mouseY - (ballDiameter / 2), ballDiameter, ballDiameter);
@@ -206,6 +179,23 @@ public class GraphicsEngine
     
     drawButtons(c, CurrentScreen.DEBUG_VIEW_DETAILS);
     drawRegions(c, CurrentScreen.DEBUG_VIEW_DETAILS);
+    
+    c.setColor(new Color( Color.red.getRed(), Color.red.getGreen(), Color.red.getBlue(), 64));
+    c.fillOval(mouseX - (ballDiameter / 2), mouseY - (ballDiameter / 2), ballDiameter, ballDiameter);
+  }
+  
+  
+  
+  private void drawForLoadingBeforeLevel(Graphics2D c)
+  {
+    c.setColor(Color.black);
+    c.fillRect(0, 0, gameEngine.getCanvasWidth(), gameEngine.getCanvasHeight());
+    
+    c.setColor(Color.red);
+    c.fillOval(mouseX - (ballDiameter / 2), mouseY - (ballDiameter / 2), ballDiameter, ballDiameter);
+    
+    drawButtons(c, CurrentScreen.LOADING_BEFORE_LEVEL);
+    drawRegions(c, CurrentScreen.LOADING_BEFORE_LEVEL);
     
     c.setColor(new Color( Color.red.getRed(), Color.red.getGreen(), Color.red.getBlue(), 64));
     c.fillOval(mouseX - (ballDiameter / 2), mouseY - (ballDiameter / 2), ballDiameter, ballDiameter);
@@ -261,6 +251,19 @@ public class GraphicsEngine
     this.regionsToDraw.add(region);
     this.regionsScreenContext.add(context);
   }
+  
+  public ArrayList<EFScrollableRegion> getRegionsToDraw()
+  {
+    return regionsToDraw;
+  }
+  
+  
+  public ArrayList<CurrentScreen> getRegionsScreenContext()
+  {
+    return regionsScreenContext;
+  }
+  
+  
   
 }
 

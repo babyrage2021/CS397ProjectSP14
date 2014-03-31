@@ -61,17 +61,18 @@ public class EFScrollableRegion
   
   public void drawRegion(Graphics2D c)
   {
-    c.setColor(Color.white);
+    c.setColor(Color.pink);
     c.fillRect(x, y, width, height);
-    int regionWidth = regionX + width;
-    int regionHeight = regionY + height;
-    if( regionWidth > image.getWidth() )
+    
+    int regionWidth = width;
+    int regionHeight = height;
+    if( regionX + regionWidth > image.getWidth() )
     {
-      regionWidth = image.getWidth();
+      regionWidth = (image.getWidth() - regionX);
     }
-    if( regionHeight > image.getHeight())
+    if( regionY + regionHeight > image.getHeight())
     {
-      regionHeight = image.getHeight();
+      regionHeight = (image.getHeight() - regionY);
     }
     c.drawImage(image.getSubimage(regionX, regionY, regionWidth, regionHeight), x, y, null);
   }
@@ -81,6 +82,54 @@ public class EFScrollableRegion
   public boolean isMouseOn(int mouseX, int mouseY)
   {
     return(mouseX >= x && mouseY >= y && mouseX < x + width && mouseY < y + height);
+  }
+  
+  
+  
+  public int getX()
+  {
+    return x;
+  }
+  
+  
+  
+  public int getY()
+  {
+    return y;
+  }
+  
+  
+  
+  public void setRegionX(int regionX)
+  {
+    if( regionX + width < image.getWidth() && regionX >= 0 )
+    {
+      this.regionX = regionX;
+    }
+  }
+  
+  
+  
+  public void setRegionY(int regionY)
+  {
+    if( regionY + height < image.getHeight() && regionY >= 0 )
+    {
+      this.regionY = regionY;
+    }
+  }
+  
+  
+  
+  public int getRegionX()
+  {
+    return regionX;
+  }
+  
+  
+  
+  public int getRegionY()
+  {
+    return regionY;
   }
 }
 

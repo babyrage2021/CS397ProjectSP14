@@ -51,12 +51,23 @@ public final class GameEngine extends Thread
   private EFCoord cameraPosition;
   private EFResolution resolution;
   private EFButton helpMessageButton;
+  private EFScrollableRegion regionToShift;
+  private int regionXOffset;
+  private int regionYOffset;
   
   //<editor-fold defaultstate="collapsed" desc="Menu Buttons and Regions">
   
   //<editor-fold defaultstate="collapsed" desc="MAIN_MENU">
   
   private EFButton toDebugFromMain;
+  private EFButton toTestLevelOneFromMain;
+  
+//</editor-fold>
+  
+  
+  //<editor-fold defaultstate="collapsed" desc="LOADING_BEFORE_LEVEL">
+  
+  private EFButton loadingMessage;
   
 //</editor-fold>
   
@@ -72,15 +83,21 @@ public final class GameEngine extends Thread
   private EFButton objectAtAGlance;
   private EFButton openDetails;
   private EFButton currentRules;
+  private EFButton objectListUpButton;
+  private EFButton objectListDownButton;
+  private ArrayList<EFButton> objectButtons;
+  private final int numberOfObjects;
+  private int currentlySelectedObject;
   
 //</editor-fold>
   
   //<editor-fold defaultstate="collapsed" desc="DEBUG_VIEW_DETAILS">
   
-  private EFScrollableRegion testRegion;
+  private EFScrollableRegion objectImageDisplay;
   //acceptButton
   //denyButton
   //menuButton
+  //objectButtons
   
 //</editor-fold>
   
@@ -90,6 +107,7 @@ public final class GameEngine extends Thread
   private ArrayList<CurrentScreen> buttonsScreenContext;
 
   private final String GRAPHICS_TAG = "Graphics Timer";
+  private final String LOADING_TIMER_TAG = "Loading Timer";
   
   private final String CANVAS_TAG = "Offscreen canvas";
   private Dimension canvasSize;
@@ -117,6 +135,7 @@ public final class GameEngine extends Thread
     timeTracker = new EFTimeTracker();
     timeTracker.addEFTimeEvent(GRAPHICS_TAG, 1000);
     timeTracker.addTimerToWhiteList(GRAPHICS_TAG);
+    timeTracker.addEFTimeEvent(LOADING_TIMER_TAG, 5000);
 
     timeGetter = new Date();
     
@@ -167,7 +186,7 @@ public final class GameEngine extends Thread
     resolution = new EFResolution(10.0d, 10.0d, 10.0d);
     
     
-    //<editor-fold defaultstate="collapsed" desc="EFButton Declarations">
+    //<editor-fold defaultstate="collapsed" desc="EFButton and Region Declarations">
     
     buttonsToDraw = new ArrayList();
     buttonsScreenContext = new ArrayList();
@@ -212,7 +231,47 @@ public final class GameEngine extends Thread
           "ObjectList");
     objectList.setCustomBorderXLength(getCanvasWidth() / 5 - 2);
     objectList.setCustomBorderYLength(getCanvasHeight() - (getCanvasHeight() / 6 + 3));
-    graphicsEngine.loadButtonToDraw(objectList, CurrentScreen.DEBUG);
+    //graphicsEngine.loadButtonToDraw(objectList, CurrentScreen.DEBUG);
+    
+    
+    numberOfObjects = 5;
+    objectButtons = new ArrayList();
+    currentlySelectedObject = -1;
+    
+    for( int i = 0; i < numberOfObjects; i++ )
+    {
+      objectButtons.add(new EFButton(canvasGraphics, 1, 
+            getCanvasHeight() / 6 + 1 + getCanvasWidth() / 30 + 
+                  (int)( (((float)getCanvasHeight() * (11f / 15f) / 
+                  (float)numberOfObjects) * (float)i)),
+            "object " + i ));
+      objectButtons.get(i).setCustomBorderXLength(getCanvasWidth() / 5 - 2);
+      objectButtons.get(i).setCustomBorderYLength((int)((float)getCanvasHeight() * (11f / 15f) / 
+            (float)numberOfObjects - 2));
+      objectButtons.get(i).addNewPreset("Default", objectButtons.get(i));
+      objectButtons.get(i).mainBackgroundColor = Color.green;
+      objectButtons.get(i).activatedBackgroundColor = Color.ORANGE;
+      objectButtons.get(i).addNewPreset("forWhenSelected", objectButtons.get(i));
+      objectButtons.get(i).loadPreset("Default");
+      graphicsEngine.loadButtonToDraw(objectButtons.get(i), CurrentScreen.DEBUG);
+      graphicsEngine.loadButtonToDraw(objectButtons.get(i), CurrentScreen.DEBUG_VIEW_DETAILS);
+    }
+    
+    objectListUpButton = new EFButton(canvasGraphics, 1,
+    getCanvasHeight() / 6 + 1,
+    "Up");
+    objectListUpButton.setCustomBorderXLength(getCanvasWidth() / 5 - 2);
+    objectListUpButton.setCustomBorderYLength(getCanvasWidth() / 30 - 2);
+    graphicsEngine.loadButtonToDraw(objectListUpButton, CurrentScreen.DEBUG);
+    graphicsEngine.loadButtonToDraw(objectListUpButton, CurrentScreen.DEBUG_VIEW_DETAILS);
+    
+    objectListDownButton = new EFButton(canvasGraphics, 1, 
+          (int)(19f * (float)getCanvasHeight() / 20f),
+          "Down");
+    objectListDownButton.setCustomBorderXLength(getCanvasWidth() / 5 - 2);
+    objectListDownButton.setCustomBorderYLength(getCanvasWidth() / 30 - 2);
+    graphicsEngine.loadButtonToDraw(objectListDownButton, CurrentScreen.DEBUG);
+    graphicsEngine.loadButtonToDraw(objectListDownButton, CurrentScreen.DEBUG_VIEW_DETAILS);
     
     acceptButton = new EFButton(canvasGraphics, getCanvasWidth() / 5 + 1, getCanvasHeight() / 6 + 1,
     "Accept");
@@ -221,9 +280,9 @@ public final class GameEngine extends Thread
     graphicsEngine.loadButtonToDraw(acceptButton, CurrentScreen.DEBUG);
     graphicsEngine.loadButtonToDraw(acceptButton, CurrentScreen.DEBUG_VIEW_DETAILS);
     acceptButton.addNewPreset("Default", acceptButton);
-    acceptButton.setX(1);
+    acceptButton.setX(getCanvasWidth() / 5 + 2 + (int)(717f * (float)getCanvasWidth() / 1000f) - 2);
     acceptButton.setCustomBorderYLength((int)(2.5f * (float)getCanvasHeight()) / 6 - 2);
-    acceptButton.setCustomBorderXLength((int)((float)getCanvasWidth() / 4.25f));
+    acceptButton.setCustomBorderXLength((int)((float)getCanvasWidth() / 12f) - 2);
     acceptButton.addNewPreset("forViewDetails", acceptButton);
     acceptButton.loadPreset("Default");
     
@@ -233,10 +292,10 @@ public final class GameEngine extends Thread
     denyButton.setCustomBorderXLength((int)((float)getCanvasWidth() / 2.5f) - 5);
     denyButton.setCustomBorderYLength(getCanvasHeight() / 6 + 2);
     denyButton.addNewPreset("Default", denyButton);
-    denyButton.setX(1);
+    denyButton.setX(getCanvasWidth() / 5 + 2 + (int)(717f * (float)getCanvasWidth() / 1000f) - 2);
     denyButton.setY((int)(3.5f * (float)getCanvasHeight()) / 6 + 1);
     denyButton.setCustomBorderYLength((int)(2.5f * (float)getCanvasHeight()) / 6 - 2);
-    denyButton.setCustomBorderXLength((int)((float)getCanvasWidth() / 4.25f));
+    denyButton.setCustomBorderXLength((int)((float)getCanvasWidth() / 12f) - 2);
     denyButton.addNewPreset("forViewDetails", denyButton);
     denyButton.loadPreset("Default");
     graphicsEngine.loadButtonToDraw(denyButton, CurrentScreen.DEBUG);
@@ -297,12 +356,47 @@ public final class GameEngine extends Thread
     toDebugFromMain.addNewPreset("test", new EFButton(canvasGraphics, 50, 50, "Hi"));
     toDebugFromMain.addNewPreset("Default", toDebugFromMain);
     
+    EFButton.defaultBackgroundType = BackgroundType.OPAQUE;
+    this.toTestLevelOneFromMain = new EFButton(canvasGraphics, canvas.getWidth() / 2,
+    canvas.getHeight() / 2 - canvas.getHeight() / 6, "Test Level 1");
+    graphicsEngine.loadButtonToDraw(toTestLevelOneFromMain, CurrentScreen.MAIN_SCREEN);
+    
 //</editor-fold>
     
-    testRegion = new EFScrollableRegion(50, 50, 200, 200, "Resources/ScrollableRegionTest.png");
-    graphicsEngine.loadRegionToDraw(testRegion, CurrentScreen.DEBUG_VIEW_DETAILS);
+    EFButton.defaultDisplayType = DisplayType.CENTER;
+    EFButton.defaultBackgroundType = BackgroundType.TRANSPARENT;
+    EFButton.defaultBorderType = BorderType.NONE;
+    EFButton.defaultMainMessageColor = Color.red;
+    loadingMessage = new EFButton(canvasGraphics, getCanvasWidth() / 2, getCanvasHeight() / 2, 
+    "Now loading level one...");
+    graphicsEngine.loadButtonToDraw(loadingMessage, CurrentScreen.LOADING_BEFORE_LEVEL);
+    
+    //<editor-fold defaultstate="collapsed" desc="DEBUG_VIEW_DETAILS">
+    
+    EFButton.defaultMainBackgroundColor = Color.pink;
+    EFButton.defaultMainBorderColor = Color.green;
+    EFButton.defaultActivatedBackgroundColor = Color.blue;
+    EFButton.defaultMainBorderColor = Color.blue;
+    EFButton.defaultActivatedBorderColor = Color.yellow;
+    EFButton.defaultBorderType = BorderType.LINE;
+    EFButton.defaultMainMessageColor = Color.black;
+    EFButton.defaultBackgroundType = BackgroundType.OPAQUE;
+
+    EFButton.defaultDisplayType = DisplayType.TOP_LEFT;
+
+    objectImageDisplay = new EFScrollableRegion(getCanvasWidth() / 5 + 2, 
+          getCanvasHeight() / 6 + 2, 
+          (int)(717f * (float)getCanvasWidth() / 1000f) - 4, 
+          5 * getCanvasHeight() / 6 - 3, 
+          "Resources/ScrollableRegionTest.png");
+    graphicsEngine.loadRegionToDraw(objectImageDisplay, CurrentScreen.DEBUG_VIEW_DETAILS);
+    
+//</editor-fold>
     
     graphicsEngine.loadButtonToDraw(helpMessageButton, CurrentScreen.UNIVERSAL);
+    this.regionToShift = null;
+    this.regionXOffset = -1;
+    this.regionYOffset = -1;
     
 //</editor-fold>
     
@@ -344,6 +438,17 @@ public final class GameEngine extends Thread
       }
       
       
+      
+      if(currentScreen == CurrentScreen.LOADING_BEFORE_LEVEL)
+      {
+        
+        if(timeTracker.getAndFlipIsTriggered(this.LOADING_TIMER_TAG))
+        {
+          currentScreen = CurrentScreen.DEBUG;
+        }
+      }
+      
+      
 
       {
         timeTracker.sleepThread();
@@ -370,6 +475,12 @@ public final class GameEngine extends Thread
   public void mouseDragged(MouseEvent e)
   {
     calculateMousePositions(e);
+    
+    if( regionToShift != null)
+    {
+      regionToShift.setRegionX(regionXOffset - (mouseX - regionToShift.getX()));
+      regionToShift.setRegionY(regionYOffset - (mouseY - regionToShift.getY()));
+    }
   }
 
 
@@ -394,6 +505,10 @@ public final class GameEngine extends Thread
   public void mouseReleased(MouseEvent e)
   {
     calculateMousePositions(e);
+    
+    regionToShift = null;
+      regionXOffset = -1;
+      regionYOffset = -1;
   }
 
 
@@ -409,6 +524,11 @@ public final class GameEngine extends Thread
       {
         currentScreen = CurrentScreen.DEBUG;
       }
+      else if( this.toTestLevelOneFromMain.isCursorOn(mouseX, mouseY))
+      {
+        timeTracker.getAndFlipIsTriggered(this.LOADING_TIMER_TAG);
+        currentScreen = CurrentScreen.LOADING_BEFORE_LEVEL;
+      }
     }
     else if(currentScreen == CurrentScreen.DEBUG)
     {
@@ -416,13 +536,84 @@ public final class GameEngine extends Thread
       {
         currentScreen = CurrentScreen.MAIN_SCREEN;
       }
+      
       else if( openDetails.isCursorOn(mouseX, mouseY))
       {
         acceptButton.loadPreset("forViewDetails");
         denyButton.loadPreset("forViewDetails");
         currentScreen = CurrentScreen.DEBUG_VIEW_DETAILS;
+      } 
+      
+      else if( objectListUpButton.isCursorOn(mouseX, mouseY))
+      {
+        if (currentlySelectedObject >= 0 && currentlySelectedObject < objectButtons.size())
+        {
+          objectButtons.get(currentlySelectedObject).loadPreset("Default");
+        }
+        currentlySelectedObject++;
+        if (currentlySelectedObject >= 0 && currentlySelectedObject < objectButtons.size())
+        {
+          objectButtons.get(currentlySelectedObject).loadPreset("forWhenSelected");
+        }
+      }
+      
+      else if( objectListDownButton.isCursorOn(mouseX, mouseY))
+      {
+        if (currentlySelectedObject >= 0 && currentlySelectedObject < objectButtons.size())
+        {
+          objectButtons.get(currentlySelectedObject).loadPreset("Default");
+        }
+        currentlySelectedObject--;
+        if (currentlySelectedObject >= 0 && currentlySelectedObject < objectButtons.size())
+        {
+          objectButtons.get(currentlySelectedObject).loadPreset("forWhenSelected");
+        }
+      }
+      
+      else
+      {
+        for(int i = 0; i < objectButtons.size(); i++)
+        {
+          if (objectButtons.get(i).isCursorOn(mouseX, mouseY))
+          {
+            if (currentlySelectedObject >= 0 && currentlySelectedObject < objectButtons.size())
+            {
+              objectButtons.get(currentlySelectedObject).loadPreset("Default");
+            }
+            currentlySelectedObject = i;
+            objectButtons.get(i).loadPreset("forWhenSelected");
+          }
+        }
       }
     }
+    
+    else if(currentScreen == CurrentScreen.DEBUG_VIEW_DETAILS)
+    {
+      if( acceptButton.isCursorOn(mouseX, mouseY))
+      {
+        acceptButton.loadPreset("Default");
+        denyButton.loadPreset("Default");
+        currentScreen = CurrentScreen.DEBUG;
+      }
+    }
+    
+          ArrayList<CurrentScreen> regionContexts = graphicsEngine.getRegionsScreenContext();
+          ArrayList<EFScrollableRegion> regions = graphicsEngine.getRegionsToDraw();
+    for(int i = 0; i < graphicsEngine.getRegionsScreenContext().size(); i++)
+        {
+          
+          if (regionContexts.get(i) == currentScreen)
+          {
+            if (regions.get(i).isMouseOn(mouseX, mouseY) && regionToShift == null)
+            {
+              regionToShift = regions.get(i);
+              regionXOffset = mouseX - regionToShift.getX() + regionToShift.getRegionX();
+              regionYOffset = mouseY - regionToShift.getY() + regionToShift.getRegionY();
+              System.out.println(regionXOffset);
+              System.out.println(regionYOffset);
+            }
+          }
+        }
   }
 
 
