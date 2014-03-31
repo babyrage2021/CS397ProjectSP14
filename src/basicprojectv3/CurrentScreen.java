@@ -22,7 +22,8 @@ public enum CurrentScreen
   UNIVERSAL,
   LOADING_ON_FIRST_OPEN,
   MAIN_SCREEN,
-  DEBUG;
+  DEBUG,
+  DEBUG_VIEW_DETAILS;
 }
 
 

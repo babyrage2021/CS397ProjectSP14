@@ -95,6 +95,7 @@ public class EFButton implements EFHelpTag {
   private static BufferedImage defaultIcon = new BufferedImage(100, 100, 
         BufferedImage.TYPE_4BYTE_ABGR );
   
+  public static String defaultHelpMessage = "";
   private String helpMessage;
   
   
@@ -257,7 +258,7 @@ public class EFButton implements EFHelpTag {
     this( g, x, y, message, font, mainMessageColor, activatedMessageColor,
          displayType, borderType, borderBuffer, borderThickness, 
          mainBorderColor, activatedBorderColor, backgroundType, mainBackgroundColor, 
-         activatedBackgroundColor, backgroundTransperency, defaultGradientColor1, defaultGradientColor2,
+         activatedBackgroundColor, backgroundTransperency, gradientColor1, gradientColor2,
          defaultDashLength, defaultIcon );
   }
   
@@ -279,13 +280,12 @@ public class EFButton implements EFHelpTag {
     this(g, x, y, message, font, mainMessageColor, activatedMessageColor, displayType, borderType,
           borderBuffer, borderThickness,
           mainBorderColor, activatedBorderColor, backgroundType, mainBackgroundColor,
-          activatedBackgroundColor, backgroundTransperency, defaultGradientColor1, defaultGradientColor2,
-          defaultDashLength, defaultIcon, true, "helpMessage", new ArrayList(), new ArrayList()
+          activatedBackgroundColor, backgroundTransperency, gradientColor1, gradientColor2,
+          dashLength, icon, null, true, defaultHelpMessage, new ArrayList(), new ArrayList(), false, 0, 0
     );
     
     
     shouldDraw = true;
-    helpMessage = "helpMessage";
     presetNames = new ArrayList();
     presets = new ArrayList();
     
@@ -295,8 +295,9 @@ public class EFButton implements EFHelpTag {
                 borderType,
                 borderBuffer, borderThickness,
                 mainBorderColor, activatedBorderColor, backgroundType, mainBackgroundColor,
-                activatedBackgroundColor, backgroundTransperency, defaultGradientColor1, defaultGradientColor2,
-                defaultDashLength, defaultIcon, shouldDraw, helpMessage, new ArrayList(), new ArrayList())
+                activatedBackgroundColor, backgroundTransperency, gradientColor1, gradientColor2,
+                dashLength, mainIcon, activatedIcon, shouldDraw, helpMessage, new ArrayList(), new ArrayList(),
+                isUsingCustomLengths, customBorderXLength, customBorderYLength)
     );
   }
   
@@ -310,16 +311,17 @@ public class EFButton implements EFHelpTag {
                   float borderThickness, Color mainBorderColor, Color activatedBorderColor, 
                   BackgroundType backgroundType, Color mainBackgroundColor, Color activatedBackgroundColor, 
                   int backgroundTransperency, Color gradientColor1, Color gradientColor2, int dashLength,
-                  BufferedImage icon, boolean shouldDraw, String helpMessage, 
+                  BufferedImage icon, BufferedImage activatedIcon, boolean shouldDraw, String helpMessage, 
                   ArrayList<String> presetNames, 
-                  ArrayList<EFButton> presets )
+                  ArrayList<EFButton> presets, boolean isUsingCustomLengths, int customBorderXLength, 
+                  int customBorderYLength )
   {
     this.g = g;
     this.x = x;
     this.y = y;
-    this.isUsingCustomLengths = false;
-    this.customBorderXLength = 0;
-    this.customBorderYLength = 0;
+    this.isUsingCustomLengths = isUsingCustomLengths;
+    this.customBorderXLength = customBorderXLength;
+    this.customBorderYLength = customBorderYLength;
     this.message = message;
     this.font = font;
     this.mainMessageColor = mainMessageColor;
@@ -352,6 +354,15 @@ public class EFButton implements EFHelpTag {
     } else
     {
       this.mainIcon = null;
+    }
+    
+    if(activatedIcon != null)
+    {
+      this.activatedIcon = activatedIcon.getSubimage(0, 0, activatedIcon.getWidth(), 
+            activatedIcon.getHeight());
+    } else
+    {
+      this.activatedIcon = null;
     }
     this.shouldDraw = shouldDraw;
     this.helpMessage = helpMessage;
@@ -1033,11 +1044,23 @@ public class EFButton implements EFHelpTag {
   
   public void addNewPreset(String presetName, EFButton newPreset)
   {
-    if( !presetNames.contains(presetName))
+    if (presetNames.contains(presetName))
     {
-      presetNames.add(presetName);
-      presets.add(newPreset);
+      presets.remove(presetNames.indexOf(presetName));
+      presetNames.remove(presetName);
     }
+    if(newPreset == this)
+    {
+      newPreset = new EFButton(g, x, y, message, font, mainMessageColor, activatedMessageColor, displayType,
+                borderType,
+                borderBuffer, borderThickness,
+                mainBorderColor, activatedBorderColor, backgroundType, mainBackgroundColor,
+                activatedBackgroundColor, backgroundTransperency, gradientColor1, gradientColor2,
+                dashLength, mainIcon, activatedIcon, shouldDraw, helpMessage, new ArrayList(), new ArrayList(),
+                isUsingCustomLengths, customBorderXLength, customBorderYLength);
+    }
+    presetNames.add(presetName);
+    presets.add(newPreset);
   }
   
   
@@ -1046,7 +1069,6 @@ public class EFButton implements EFHelpTag {
     if( presetNames.contains(presetName))
     {
       presetNames.indexOf(presetName);
-      System.out.println(presetNames.indexOf(presetName));
       
       EFButton template = presets.get(presetNames.indexOf(presetName));
       

@@ -4,20 +4,21 @@
 //Quick use guide: Just construct a new MainPanel and call start()
 package basicprojectv3;
 
-import java.io.*;
-import java.util.*;
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import java.util.Date;
-import java.awt.image.*;
+import EFButton.*;
+import EFCoord.*;
+import EFHelpTag.*;
+import EFResolution.*;
+import EFScrollableRegion.EFScrollableRegion;
 import EFTimeTracker.*;
 import Entities.*;
-import EFCoord.*;
-import EFResolution.*;
-import EFButton.*;
-import EFHelpTag.*;
+import java.awt.*;
+import java.awt.event.*;
 import java.awt.geom.AffineTransform;
+import java.awt.image.*;
+import java.io.*;
+import java.util.*;
+import java.util.Date;
+import javax.swing.*;
 
 
 
@@ -53,6 +54,9 @@ public class GraphicsEngine
   ArrayList<EFButton> buttonsToDraw;
   ArrayList<CurrentScreen> buttonsScreenContext;
   
+  ArrayList<EFScrollableRegion> regionsToDraw;
+  ArrayList<CurrentScreen> regionsScreenContext;
+  
   //*Graphics context for double buffering*\\
   private Graphics visableGraphics;
   private Dimension dimension;
@@ -73,6 +77,8 @@ public class GraphicsEngine
     this.gameEngine = gameEngine;
     buttonsToDraw = new ArrayList();
     buttonsScreenContext = new ArrayList();
+    regionsToDraw = new ArrayList();
+    regionsScreenContext = new ArrayList();
     
     mouseX = 0;
     mouseY = 0;
@@ -103,8 +109,12 @@ public class GraphicsEngine
     {
       drawForDebug(context);
     }
+    else if(currentScreen == CurrentScreen.DEBUG_VIEW_DETAILS)
+    {
+      drawForDebugViewDetails(context);
+    }
     
-    
+    //helpMessageButton.drawButton(false, context, cameraPosition);
     
     visableGraphics = container.getGraphics();
     visableGraphics.drawImage (offScreenCanvas, 0, 0, container.getWidth(), container.getHeight(), null); 
@@ -183,6 +193,73 @@ public class GraphicsEngine
     
     c.setColor(new Color( Color.red.getRed(), Color.red.getGreen(), Color.red.getBlue(), 64));
     c.fillOval(mouseX - (ballDiameter / 2), mouseY - (ballDiameter / 2), ballDiameter, ballDiameter);
+  }
+  
+  
+  private void drawForDebugViewDetails(Graphics2D c)
+  {
+    c.setColor(Color.black);
+    c.fillRect(0, 0, gameEngine.getCanvasWidth(), gameEngine.getCanvasHeight());
+    
+    c.setColor(Color.red);
+    c.fillOval(mouseX - (ballDiameter / 2), mouseY - (ballDiameter / 2), ballDiameter, ballDiameter);
+    
+    drawButtons(c, CurrentScreen.DEBUG_VIEW_DETAILS);
+    drawRegions(c, CurrentScreen.DEBUG_VIEW_DETAILS);
+    
+    c.setColor(new Color( Color.red.getRed(), Color.red.getGreen(), Color.red.getBlue(), 64));
+    c.fillOval(mouseX - (ballDiameter / 2), mouseY - (ballDiameter / 2), ballDiameter, ballDiameter);
+  }
+  
+  
+  
+  public void drawButtons(Graphics2D c, CurrentScreen currentScreen)
+  {
+    
+    for( int i = 0; i < buttonsToDraw.size(); i++ )
+    {
+      if( buttonsScreenContext.get(i) == currentScreen || 
+            buttonsScreenContext.get(i) == CurrentScreen.UNIVERSAL )
+      {
+        buttonsToDraw.get(i).drawButton(buttonsToDraw.get(i).isCursorOn(mouseX, mouseY), c,
+              cameraPosition);
+      }
+    }
+  }
+  
+  
+  
+  public void drawRegions(Graphics2D c, CurrentScreen currentScreen)
+  {
+    
+    for( int i = 0; i < regionsToDraw.size(); i++ )
+    {
+      if( regionsScreenContext.get(i) == currentScreen || 
+            regionsScreenContext.get(i) == CurrentScreen.UNIVERSAL )
+      {
+        regionsToDraw.get(i).drawRegion(c);
+      }
+    }
+  }
+  
+  
+  
+  public ArrayList<EFButton> getButtonsToDraw()
+  {
+    return buttonsToDraw;
+  }
+  
+  
+  public ArrayList<CurrentScreen> getButtonsScreenContext()
+  {
+    return buttonsScreenContext;
+  }
+  
+  
+  public void loadRegionToDraw(EFScrollableRegion region, CurrentScreen context)
+  {
+    this.regionsToDraw.add(region);
+    this.regionsScreenContext.add(context);
   }
   
 }
