@@ -4,21 +4,22 @@
 //Quick use guide: Just construct a new MainPanel and call start()
 package basicprojectv3;
 
-import java.io.*;
-import java.util.*;
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import java.util.Date;
-import java.awt.image.*;
-import EFTimeTracker.*;
-import EFCoord.*;
-import EFResolution.*;
-import Entities.*;
 import EFButton.*;
+import EFCoord.*;
 import EFHelpTag.*;
 import EFIniParser.*;
+import EFObject.EFObject;
+import EFResolution.*;
 import EFScrollableRegion.*;
+import EFTimeTracker.*;
+import Entities.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.awt.image.*;
+import java.io.*;
+import java.util.*;
+import java.util.Date;
+import javax.swing.*;
 
 
 
@@ -81,8 +82,10 @@ public final class GameEngine extends Thread
   private EFButton acceptButton;
   private EFButton denyButton;
   private EFButton objectAtAGlance;
+  private EFScrollableRegion objectAtAGlanceImage;
   private EFButton openDetails;
   private EFButton currentRules;
+  private EFScrollableRegion currentRulesImage;
   private EFButton objectListUpButton;
   private EFButton objectListDownButton;
   private ArrayList<EFButton> objectButtons;
@@ -118,6 +121,15 @@ public final class GameEngine extends Thread
   
   private Graphics visableGraphics;
   private Dimension dimension;
+  
+  
+  
+  private String levelName;
+  private int numberOfObjectsInCurrentLevel;
+  private ArrayList<EFObject> objectsInCurrentLevel;
+  private int numberOfShields;
+  private int currentlySelectedAttachment;
+  EFButton shieldsRemainingTag;
 
 
 
@@ -226,6 +238,12 @@ public final class GameEngine extends Thread
     menuBar.setHelpMessage("Test For menuBar");
     graphicsEngine.loadButtonToDraw(menuBar, CurrentScreen.DEBUG);
     graphicsEngine.loadButtonToDraw(menuBar, CurrentScreen.DEBUG_VIEW_DETAILS);
+    graphicsEngine.loadButtonToDraw(menuBar, CurrentScreen.IN_GAME_MAIN);
+    graphicsEngine.loadButtonToDraw(menuBar, CurrentScreen.IN_GAME_VIEW_DETAILS);
+    
+    shieldsRemainingTag = new EFButton(canvasGraphics, 1, 30, "3");
+    graphicsEngine.loadButtonToDraw(shieldsRemainingTag, CurrentScreen.IN_GAME_MAIN);
+    graphicsEngine.loadButtonToDraw(shieldsRemainingTag, CurrentScreen.IN_GAME_VIEW_DETAILS);
     
     objectList = new EFButton(canvasGraphics, 1, getCanvasHeight() / 6 + 1, 
           "ObjectList");
@@ -255,6 +273,8 @@ public final class GameEngine extends Thread
       objectButtons.get(i).loadPreset("Default");
       graphicsEngine.loadButtonToDraw(objectButtons.get(i), CurrentScreen.DEBUG);
       graphicsEngine.loadButtonToDraw(objectButtons.get(i), CurrentScreen.DEBUG_VIEW_DETAILS);
+      graphicsEngine.loadButtonToDraw(objectButtons.get(i), CurrentScreen.IN_GAME_MAIN);
+      graphicsEngine.loadButtonToDraw(objectButtons.get(i), CurrentScreen.IN_GAME_VIEW_DETAILS);
     }
     
     objectListUpButton = new EFButton(canvasGraphics, 1,
@@ -264,6 +284,8 @@ public final class GameEngine extends Thread
     objectListUpButton.setCustomBorderYLength(getCanvasWidth() / 30 - 2);
     graphicsEngine.loadButtonToDraw(objectListUpButton, CurrentScreen.DEBUG);
     graphicsEngine.loadButtonToDraw(objectListUpButton, CurrentScreen.DEBUG_VIEW_DETAILS);
+    graphicsEngine.loadButtonToDraw(objectListUpButton, CurrentScreen.IN_GAME_MAIN);
+    graphicsEngine.loadButtonToDraw(objectListUpButton, CurrentScreen.IN_GAME_VIEW_DETAILS);
     
     objectListDownButton = new EFButton(canvasGraphics, 1, 
           (int)(19f * (float)getCanvasHeight() / 20f),
@@ -272,6 +294,8 @@ public final class GameEngine extends Thread
     objectListDownButton.setCustomBorderYLength(getCanvasWidth() / 30 - 2);
     graphicsEngine.loadButtonToDraw(objectListDownButton, CurrentScreen.DEBUG);
     graphicsEngine.loadButtonToDraw(objectListDownButton, CurrentScreen.DEBUG_VIEW_DETAILS);
+    graphicsEngine.loadButtonToDraw(objectListDownButton, CurrentScreen.IN_GAME_MAIN);
+    graphicsEngine.loadButtonToDraw(objectListDownButton, CurrentScreen.IN_GAME_VIEW_DETAILS);
     
     acceptButton = new EFButton(canvasGraphics, getCanvasWidth() / 5 + 1, getCanvasHeight() / 6 + 1,
     "Accept");
@@ -279,6 +303,8 @@ public final class GameEngine extends Thread
     acceptButton.setCustomBorderYLength(getCanvasHeight() / 6 + 2);
     graphicsEngine.loadButtonToDraw(acceptButton, CurrentScreen.DEBUG);
     graphicsEngine.loadButtonToDraw(acceptButton, CurrentScreen.DEBUG_VIEW_DETAILS);
+    graphicsEngine.loadButtonToDraw(acceptButton, CurrentScreen.IN_GAME_MAIN);
+    graphicsEngine.loadButtonToDraw(acceptButton, CurrentScreen.IN_GAME_VIEW_DETAILS);
     acceptButton.addNewPreset("Default", acceptButton);
     acceptButton.setX(getCanvasWidth() / 5 + 2 + (int)(717f * (float)getCanvasWidth() / 1000f) - 2);
     acceptButton.setCustomBorderYLength((int)(2.5f * (float)getCanvasHeight()) / 6 - 2);
@@ -300,6 +326,8 @@ public final class GameEngine extends Thread
     denyButton.loadPreset("Default");
     graphicsEngine.loadButtonToDraw(denyButton, CurrentScreen.DEBUG);
     graphicsEngine.loadButtonToDraw(denyButton, CurrentScreen.DEBUG_VIEW_DETAILS);
+    graphicsEngine.loadButtonToDraw(denyButton, CurrentScreen.IN_GAME_MAIN);
+    graphicsEngine.loadButtonToDraw(denyButton, CurrentScreen.IN_GAME_VIEW_DETAILS);
     
     objectAtAGlance = new EFButton(canvasGraphics,
     getCanvasWidth() / 5 + 1,
@@ -308,6 +336,14 @@ public final class GameEngine extends Thread
     objectAtAGlance.setCustomBorderXLength((int)((float)getCanvasWidth() / 2.5f));
     objectAtAGlance.setCustomBorderYLength(getCanvasHeight() / 2 + 2);
     graphicsEngine.loadButtonToDraw(objectAtAGlance, CurrentScreen.DEBUG);
+    graphicsEngine.loadButtonToDraw(objectAtAGlance, CurrentScreen.IN_GAME_MAIN);
+    
+    objectAtAGlanceImage = new EFScrollableRegion(getCanvasWidth() / 5 + 1,
+    getCanvasHeight() / 6 + 3 + getCanvasHeight() / 6 + 2,
+    (int)((float)getCanvasWidth() / 2.5f),
+    getCanvasHeight() / 2 + 2,
+    "");
+    graphicsEngine.loadRegionToDraw(objectAtAGlanceImage, CurrentScreen.IN_GAME_MAIN);
     
     openDetails = new EFButton(canvasGraphics,
     getCanvasWidth() / 5 + 1,
@@ -317,6 +353,7 @@ public final class GameEngine extends Thread
     openDetails.setCustomBorderYLength(getCanvasHeight() - (getCanvasHeight() / 2 + 2) - 
           (getCanvasHeight() / 6 + 2) - (getCanvasHeight() / 6 + 2) - 5);
     graphicsEngine.loadButtonToDraw(openDetails, CurrentScreen.DEBUG);
+    graphicsEngine.loadButtonToDraw(openDetails, CurrentScreen.IN_GAME_MAIN);
     
     currentRules = new EFButton(canvasGraphics,
     getCanvasWidth() / 5 + 2 + (int)((float)getCanvasWidth() / 2.5f) + 1,
@@ -325,6 +362,16 @@ public final class GameEngine extends Thread
     currentRules.setCustomBorderXLength((int)((float)getCanvasWidth() / 2.5f) - 5);
     currentRules.setCustomBorderYLength((int)((float)getCanvasHeight() / 1.5) - 6);
     graphicsEngine.loadButtonToDraw(currentRules, CurrentScreen.DEBUG);
+    graphicsEngine.loadButtonToDraw(currentRules, CurrentScreen.IN_GAME_MAIN);
+    
+    currentRulesImage = new EFScrollableRegion(getCanvasWidth() / 5 + 2 + (int)((float)getCanvasWidth() / 2.5f) + 1,
+    getCanvasHeight() / 6 + 2 + getCanvasHeight() / 6 + 3,
+          (int)((float)getCanvasWidth() / 2.5f) - 5,
+          (int)((float)getCanvasHeight() / 1.5) - 6,
+          ""
+    );
+    
+    graphicsEngine.loadRegionToDraw(currentRulesImage, CurrentScreen.IN_GAME_MAIN);
    
     /*    private EFButton menuBar;
      * private EFButton objectList;
@@ -390,6 +437,7 @@ public final class GameEngine extends Thread
           5 * getCanvasHeight() / 6 - 3, 
           "Resources/ScrollableRegionTest.png");
     graphicsEngine.loadRegionToDraw(objectImageDisplay, CurrentScreen.DEBUG_VIEW_DETAILS);
+    graphicsEngine.loadRegionToDraw(objectImageDisplay, CurrentScreen.IN_GAME_VIEW_DETAILS);
     
 //</editor-fold>
     
@@ -399,6 +447,14 @@ public final class GameEngine extends Thread
     this.regionYOffset = -1;
     
 //</editor-fold>
+    
+    
+    
+    this.levelName = "";
+    this.numberOfObjectsInCurrentLevel = 0;
+    this.objectsInCurrentLevel = new ArrayList();
+    numberOfShields = 3;
+    currentlySelectedAttachment = 0;
     
     
     centerJPanel.addMouseListener(this);
@@ -444,7 +500,7 @@ public final class GameEngine extends Thread
         
         if(timeTracker.getAndFlipIsTriggered(this.LOADING_TIMER_TAG))
         {
-          currentScreen = CurrentScreen.DEBUG;
+          currentScreen = CurrentScreen.IN_GAME_MAIN;
         }
       }
       
@@ -526,7 +582,8 @@ public final class GameEngine extends Thread
       }
       else if( this.toTestLevelOneFromMain.isCursorOn(mouseX, mouseY))
       {
-        timeTracker.getAndFlipIsTriggered(this.LOADING_TIMER_TAG);
+        timeTracker.getAndFlipNumberOfTriggers(this.LOADING_TIMER_TAG);
+        loadLevel(1);
         currentScreen = CurrentScreen.LOADING_BEFORE_LEVEL;
       }
     }
@@ -597,23 +654,239 @@ public final class GameEngine extends Thread
       }
     }
     
-          ArrayList<CurrentScreen> regionContexts = graphicsEngine.getRegionsScreenContext();
-          ArrayList<EFScrollableRegion> regions = graphicsEngine.getRegionsToDraw();
-    for(int i = 0; i < graphicsEngine.getRegionsScreenContext().size(); i++)
+    
+    else if(currentScreen == CurrentScreen.IN_GAME_MAIN)
+    {
+      if( acceptButton.isCursorOn(mouseX, mouseY) && currentlySelectedObject != -1)
+      {
+        checkAnswer(true);
+      }
+      else if(denyButton.isCursorOn(mouseX, mouseY) && currentlySelectedObject != -1)
+      {
+        checkAnswer(false);
+      }
+      else if (openDetails.isCursorOn(mouseX, mouseY) && currentlySelectedObject != -1)
+      {
+        acceptButton.loadPreset("forViewDetails");
+        denyButton.loadPreset("forViewDetails");
+        currentlySelectedAttachment = 0;
+
+        for (int i = 0; i < this.numberOfObjects; i++)
         {
-          
-          if (regionContexts.get(i) == currentScreen)
+          this.objectButtons.get(currentlySelectedObject).shouldDraw = false;
+          this.objectButtons.get(i).shouldCheckIsCursorOn = false;
+        }
+
+        for (int i = 0; i < this.objectsInCurrentLevel.get(currentlySelectedObject).attachments.size() && 
+              i < this.numberOfObjects; i++)
+        {
+          this.objectButtons.get(i).setMessage(Integer.toString(i));
+          this.objectButtons.get(i).shouldDraw = true;
+          this.objectButtons.get(i).shouldCheckIsCursorOn = true;
+        }
+        
+        this.objectImageDisplay.setImage(
+              this.objectsInCurrentLevel.get(currentlySelectedObject).attachments.get(currentlySelectedAttachment));
+        currentScreen = CurrentScreen.IN_GAME_VIEW_DETAILS;
+      }
+      
+      
+      
+      
+      else if( objectListUpButton.isCursorOn(mouseX, mouseY))
+      {
+        if (currentlySelectedObject >= 0 && currentlySelectedObject < this.numberOfObjectsInCurrentLevel - 1)
+        {
+          String message = objectButtons.get(currentlySelectedObject).getMessage();
+          objectButtons.get(currentlySelectedObject).loadPreset("Default");
+          objectButtons.get(currentlySelectedObject).setMessage(message);
+          currentlySelectedObject++;
+        }
+        if (currentlySelectedObject >= 0 && currentlySelectedObject < this.numberOfObjectsInCurrentLevel)
+        {
+          String message = objectButtons.get(currentlySelectedObject).getMessage();
+          objectButtons.get(currentlySelectedObject).loadPreset("forWhenSelected");
+          objectButtons.get(currentlySelectedObject).setMessage(message);
+
+          this.objectAtAGlanceImage.setImage(this.objectsInCurrentLevel.get(currentlySelectedObject).atAGlance);
+        }
+      }
+      
+      else if( objectListDownButton.isCursorOn(mouseX, mouseY))
+      {
+        if (currentlySelectedObject > 0 && currentlySelectedObject <= this.numberOfObjectsInCurrentLevel)
+        {
+          String message = objectButtons.get(currentlySelectedObject).getMessage();
+          objectButtons.get(currentlySelectedObject).loadPreset("Default");
+          objectButtons.get(currentlySelectedObject).setMessage(message);
+          currentlySelectedObject--;
+        }
+        if (currentlySelectedObject > 0 && currentlySelectedObject <= this.numberOfObjectsInCurrentLevel)
+        {
+          String message = objectButtons.get(currentlySelectedObject).getMessage();
+          objectButtons.get(currentlySelectedObject).loadPreset("forWhenSelected");
+          objectButtons.get(currentlySelectedObject).setMessage(message);
+          this.objectAtAGlanceImage.setImage(this.objectsInCurrentLevel.get(currentlySelectedObject).atAGlance);
+        }
+      }
+      
+      else
+      {
+        for(int i = 0; i < objectButtons.size(); i++)
+        {
+          if (objectButtons.get(i).isCursorOn(mouseX, mouseY))
           {
-            if (regions.get(i).isMouseOn(mouseX, mouseY) && regionToShift == null)
+            if (currentlySelectedObject >= 0 && currentlySelectedObject < objectButtons.size())
             {
-              regionToShift = regions.get(i);
-              regionXOffset = mouseX - regionToShift.getX() + regionToShift.getRegionX();
-              regionYOffset = mouseY - regionToShift.getY() + regionToShift.getRegionY();
-              System.out.println(regionXOffset);
-              System.out.println(regionYOffset);
+              String message = objectButtons.get(currentlySelectedObject).getMessage();
+              objectButtons.get(currentlySelectedObject).loadPreset("Default");
+              objectButtons.get(currentlySelectedObject).setMessage(message);
             }
+            currentlySelectedObject = i;
+              String message = objectButtons.get(currentlySelectedObject).getMessage();
+            objectButtons.get(i).loadPreset("forWhenSelected");
+              objectButtons.get(currentlySelectedObject).setMessage(message);
+              this.objectAtAGlanceImage.setImage(this.objectsInCurrentLevel.get(currentlySelectedObject).atAGlance);
+              this.currentRulesImage.setImage(this.objectsInCurrentLevel.get(currentlySelectedObject).currentRules);
           }
         }
+      }
+    }
+    
+    else if (currentScreen == CurrentScreen.IN_GAME_VIEW_DETAILS)
+    {
+      if (acceptButton.isCursorOn(mouseX, mouseY) && currentlySelectedObject != -1)
+      {
+        checkAnswer(true);
+
+        for (int i = 0; i < this.numberOfObjects; i++)
+        {
+          this.objectButtons.get(i).shouldDraw = false;
+          this.objectButtons.get(i).shouldCheckIsCursorOn = false;
+        }
+
+        for (int i = 0; i < this.numberOfObjectsInCurrentLevel && i < this.numberOfObjects; i++)
+        {
+          this.objectButtons.get(i).setMessage(objectsInCurrentLevel.get(i).name);
+          this.objectButtons.get(i).shouldDraw = true;
+          this.objectButtons.get(i).shouldCheckIsCursorOn = true;
+        }
+
+        acceptButton.loadPreset("Default");
+        denyButton.loadPreset("Default");
+        currentScreen = CurrentScreen.IN_GAME_MAIN;
+      } else if (denyButton.isCursorOn(mouseX, mouseY) && currentlySelectedObject != -1)
+      {
+        checkAnswer(false);
+
+        for (int i = 0; i < this.numberOfObjects; i++)
+        {
+          this.objectButtons.get(i).shouldDraw = false;
+          this.objectButtons.get(i).shouldCheckIsCursorOn = false;
+        }
+
+        for (int i = 0; i < this.numberOfObjectsInCurrentLevel && i < this.numberOfObjects; i++)
+        {
+          this.objectButtons.get(i).setMessage(objectsInCurrentLevel.get(i).name);
+          this.objectButtons.get(i).shouldDraw = true;
+          this.objectButtons.get(i).shouldCheckIsCursorOn = true;
+        }
+
+        acceptButton.loadPreset("Default");
+        denyButton.loadPreset("Default");
+
+        currentScreen = CurrentScreen.IN_GAME_MAIN;
+      }
+      else if( objectListUpButton.isCursorOn(mouseX, mouseY))
+      {
+        if (currentlySelectedAttachment >= 0 && currentlySelectedAttachment < 
+              this.objectsInCurrentLevel.get(currentlySelectedObject).attachments.size() - 1)
+        {
+          String message = objectButtons.get(currentlySelectedAttachment).getMessage();
+          objectButtons.get(currentlySelectedAttachment).loadPreset("Default");
+          objectButtons.get(currentlySelectedAttachment).setMessage(message);
+          currentlySelectedAttachment++;
+        }
+        if (currentlySelectedAttachment >= 0 && currentlySelectedAttachment < 
+              this.objectsInCurrentLevel.get(currentlySelectedObject).attachments.size())
+        {
+          String message = objectButtons.get(currentlySelectedAttachment).getMessage();
+          objectButtons.get(currentlySelectedAttachment).loadPreset("forWhenSelected");
+          objectButtons.get(currentlySelectedAttachment).setMessage(message);
+
+          this.objectImageDisplay.setImage(this.objectsInCurrentLevel.get(currentlySelectedObject).attachments.get(currentlySelectedAttachment));
+        }
+      }
+      
+      else if( objectListDownButton.isCursorOn(mouseX, mouseY))
+      {
+        if (currentlySelectedAttachment > 0 && currentlySelectedAttachment <= 
+              this.objectsInCurrentLevel.get(currentlySelectedObject).attachments.size())
+        {
+          String message = objectButtons.get(currentlySelectedAttachment).getMessage();
+          objectButtons.get(currentlySelectedAttachment).loadPreset("Default");
+          objectButtons.get(currentlySelectedAttachment).setMessage(message);
+          currentlySelectedAttachment--;
+        }
+        if (currentlySelectedAttachment > 0 && currentlySelectedAttachment <= 
+              this.objectsInCurrentLevel.get(currentlySelectedObject).attachments.size())
+        {
+          String message = objectButtons.get(currentlySelectedAttachment).getMessage();
+          objectButtons.get(currentlySelectedAttachment).loadPreset("forWhenSelected");
+          objectButtons.get(currentlySelectedAttachment).setMessage(message);
+          this.objectImageDisplay.setImage(this.objectsInCurrentLevel.get(currentlySelectedObject).attachments.get(currentlySelectedAttachment));
+        }
+      }
+      
+      else
+      {
+        for(int i = 0; i < objectButtons.size(); i++)
+        {
+          if (objectButtons.get(i).isCursorOn(mouseX, mouseY))
+          {
+            if (currentlySelectedAttachment >= 0 && currentlySelectedAttachment < objectButtons.size())
+            {
+              String message = objectButtons.get(currentlySelectedAttachment).getMessage();
+              objectButtons.get(currentlySelectedAttachment).loadPreset("Default");
+              objectButtons.get(currentlySelectedAttachment).setMessage(message);
+            }
+            currentlySelectedAttachment = i;
+              String message = objectButtons.get(currentlySelectedAttachment).getMessage();
+            objectButtons.get(i).loadPreset("forWhenSelected");
+              objectButtons.get(currentlySelectedAttachment).setMessage(message);
+          this.objectImageDisplay.setImage(this.objectsInCurrentLevel.get(currentlySelectedObject).attachments.get(currentlySelectedAttachment));
+          }
+        }
+      }
+    }
+    
+    else if(currentScreen == CurrentScreen.DEBUG_VIEW_DETAILS)
+    {
+      if( acceptButton.isCursorOn(mouseX, mouseY))
+      {
+        acceptButton.loadPreset("Default");
+        denyButton.loadPreset("Default");
+        currentScreen = CurrentScreen.DEBUG;
+      }
+    }
+
+    ArrayList<CurrentScreen> regionContexts = graphicsEngine.getRegionsScreenContext();
+    ArrayList<EFScrollableRegion> regions = graphicsEngine.getRegionsToDraw();
+    for (int i = 0; i < graphicsEngine.getRegionsScreenContext().size(); i++)
+    {
+
+      if (regionContexts.get(i) == currentScreen)
+      {
+        if (regions.get(i).isMouseOn(mouseX, mouseY) && regionToShift == null)
+        {
+          regionToShift = regions.get(i);
+          regionXOffset = mouseX - regionToShift.getX() + regionToShift.getRegionX();
+          regionYOffset = mouseY - regionToShift.getY() + regionToShift.getRegionY();
+          System.out.println(regionXOffset);
+          System.out.println(regionYOffset);
+        }
+      }
+    }
   }
 
 
@@ -725,6 +998,68 @@ public final class GameEngine extends Thread
       mouseX = Math.round((float)e.getX() * ((float)canvas.getWidth() / (float)centerJPanel.getWidth()));
       mouseY = Math.round((float)e.getY() * ((float)canvas.getHeight() / (float)centerJPanel.getHeight()));
       //graphicsEngine.updateCursors(mouseX, mouseY);
+    }
+  }
+  
+  
+  
+  private void loadLevel(int level)
+  {
+    this.objectsInCurrentLevel.clear();
+    
+    EFIniParser levelInformation = new EFIniParser("Resources/Levels/" + level + "/Properties.ini");
+    levelName = levelInformation.getValue("level.name");
+    numberOfObjectsInCurrentLevel = Integer.parseInt(levelInformation.getValue("level.numberOfObjects"));
+    
+    for(int i = 0; i < numberOfObjectsInCurrentLevel; i++)
+    {
+      objectsInCurrentLevel.add(new EFObject(
+            i, 
+            levelInformation.getValue("object." + i + ".name"), 
+            Integer.parseInt(levelInformation.getValue("object." + i + ".numberOfAttachedObjects")), 
+            "Resources/Levels/" + level + "/", 
+            levelInformation.getValue("object." + i + ".successCondition").equals("approve"), 
+            levelInformation.getValue("object." + i + ".failureReason"), 
+            Integer.parseInt(levelInformation.getValue("object." + i + ".shieldPenalty")), 
+            Integer.parseInt(levelInformation.getValue("object." + i + ".successReward")),
+            levelInformation
+            ));
+    }
+    
+    for(int i = 0; i < this.numberOfObjects; i++ )
+    {
+      this.objectButtons.get(i).shouldDraw = false;
+      this.objectButtons.get(i).shouldCheckIsCursorOn = false;
+    }
+    
+    for(int i = 0; i < this.numberOfObjectsInCurrentLevel && i < this.numberOfObjects; i++)
+    {
+      this.objectButtons.get(i).setMessage(objectsInCurrentLevel.get(i).name);
+      this.objectButtons.get(i).shouldDraw = true;
+      this.objectButtons.get(i).shouldCheckIsCursorOn = true;
+    }
+    
+  }
+  
+  
+  
+  public void checkAnswer(boolean answer)
+  {
+    if(this.objectsInCurrentLevel.get(currentlySelectedObject).successCondition == answer)
+    {
+      System.out.println("YouWin!");
+      this.numberOfShields += this.objectsInCurrentLevel.get(currentlySelectedObject).successReward;
+    }
+    else
+    {
+      System.out.println("YouLose!");
+      this.numberOfShields -= this.objectsInCurrentLevel.get(currentlySelectedObject).shieldPenalty;
+    }
+    this.shieldsRemainingTag.setMessage(Integer.toString(numberOfShields));
+    if(numberOfShields <= 0)
+    {
+      currentScreen = CurrentScreen.MAIN_SCREEN;
+      numberOfShields = 3;
     }
   }
 

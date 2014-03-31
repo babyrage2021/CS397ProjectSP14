@@ -131,6 +131,32 @@ public class EFScrollableRegion
   {
     return regionY;
   }
+  
+  
+  
+  public void setImage(String directory)
+  {
+    this.regionX = 0;
+    this.regionY = 0;
+    
+    try
+    {
+      this.image = ImageIO.read(new File(directory));
+    } catch (IOException e)
+    {
+      this.image = new BufferedImage(1, 1, BufferedImage.TYPE_4BYTE_ABGR);
+    }
+    
+  }
+  
+  
+  
+  public void setImage(BufferedImage image)
+  {
+    regionX = 0;
+    regionY = 0;
+    this.image = image;
+  }
 }
 
 

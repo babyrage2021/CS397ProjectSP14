@@ -117,6 +117,14 @@ public class GraphicsEngine
     {
       drawForLoadingBeforeLevel(context);
     }
+    else if(currentScreen == CurrentScreen.IN_GAME_MAIN)
+    {
+      drawForInGameMain(context);
+    }
+    else if(currentScreen == CurrentScreen.IN_GAME_VIEW_DETAILS)
+    {
+      drawForInGameViewDetails(context);
+    }
     
     //helpMessageButton.drawButton(false, context, cameraPosition);
     
@@ -196,6 +204,40 @@ public class GraphicsEngine
     
     drawButtons(c, CurrentScreen.LOADING_BEFORE_LEVEL);
     drawRegions(c, CurrentScreen.LOADING_BEFORE_LEVEL);
+    
+    c.setColor(new Color( Color.red.getRed(), Color.red.getGreen(), Color.red.getBlue(), 64));
+    c.fillOval(mouseX - (ballDiameter / 2), mouseY - (ballDiameter / 2), ballDiameter, ballDiameter);
+  }
+  
+
+  private void drawForInGameMain(Graphics2D c)
+  {
+    c.setColor(Color.black);
+    c.fillRect(0, 0, gameEngine.getCanvasWidth(), gameEngine.getCanvasHeight());
+    
+    c.setColor(Color.red);
+    c.fillOval(mouseX - (ballDiameter / 2), mouseY - (ballDiameter / 2), ballDiameter, ballDiameter);
+    
+    c.setColor(Color.yellow);
+    
+    drawButtons(c, CurrentScreen.IN_GAME_MAIN);
+    drawRegions(c, CurrentScreen.IN_GAME_MAIN);
+    
+    c.setColor(new Color( Color.red.getRed(), Color.red.getGreen(), Color.red.getBlue(), 64));
+    c.fillOval(mouseX - (ballDiameter / 2), mouseY - (ballDiameter / 2), ballDiameter, ballDiameter);
+  }
+  
+  
+  private void drawForInGameViewDetails(Graphics2D c)
+  {
+    c.setColor(Color.black);
+    c.fillRect(0, 0, gameEngine.getCanvasWidth(), gameEngine.getCanvasHeight());
+    
+    c.setColor(Color.red);
+    c.fillOval(mouseX - (ballDiameter / 2), mouseY - (ballDiameter / 2), ballDiameter, ballDiameter);
+    
+    drawButtons(c, CurrentScreen.IN_GAME_VIEW_DETAILS);
+    drawRegions(c, CurrentScreen.IN_GAME_VIEW_DETAILS);
     
     c.setColor(new Color( Color.red.getRed(), Color.red.getGreen(), Color.red.getBlue(), 64));
     c.fillOval(mouseX - (ballDiameter / 2), mouseY - (ballDiameter / 2), ballDiameter, ballDiameter);

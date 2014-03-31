@@ -20,6 +20,7 @@ public class EFButton implements EFHelpTag {
   private int x;
   private int y;
   public boolean shouldDraw;
+  public boolean shouldCheckIsCursorOn;
   public DisplayType displayType;
   public BorderType borderType;
   public BackgroundType backgroundType;
@@ -285,6 +286,7 @@ public class EFButton implements EFHelpTag {
     );
     
     
+    shouldCheckIsCursorOn = true;
     shouldDraw = true;
     presetNames = new ArrayList();
     presets = new ArrayList();
@@ -729,6 +731,10 @@ public class EFButton implements EFHelpTag {
   
   public boolean isCursorOn (int cursorX, int cursorY) 
   {
+    if(!this.shouldCheckIsCursorOn)
+    {
+      return false;
+    }
     if( cursorX >= borderX - (int)Math.rint( borderThickness / 2 ) & cursorX <= borderX + borderXLength +
        (int)Math.rint( borderThickness / 2 ) & 
        cursorY >= borderY - (int)Math.rint( borderThickness / 2 ) & cursorY <= borderY + borderYLength +
