@@ -68,33 +68,14 @@ public class GraphicsEngine
   
   
   
-  public GraphicsEngine( GameEngine gameEngine, JFrame mainFrame, JPanel centerJPanel, 
-        BufferedImage canvas, Graphics2D canvasGraphics,
-        EFCoord cameraPosition, EFResolution resolution, ArrayList<EFButton> buttonsToDraw, 
-        ArrayList<CurrentScreen> buttonsScreenContext, EFButton helpMessageButton)
+  public GraphicsEngine( GameEngine gameEngine)
   {
     this.gameEngine = gameEngine;
-    this.mainFrame = mainFrame;
-    this.centerJPanel = centerJPanel;
-    isAlive = true;
-    this.currentScreen = currentScreen;
-    
-    
-    panelWidth = centerJPanel.getWidth();
-    panelHeight = centerJPanel.getHeight();
+    buttonsToDraw = new ArrayList();
+    buttonsScreenContext = new ArrayList();
     
     mouseX = 0;
     mouseY = 0;
-    this.cameraPosition = cameraPosition;
-    this.resolution = resolution;
-    this.helpMessageButton = helpMessageButton;
-    this.buttonsToDraw = buttonsToDraw;
-    this.buttonsScreenContext = buttonsScreenContext;
-    
-    visableGraphics = centerJPanel.getGraphics();
-    
-    this.canvas = canvas;
-    oDG = (Graphics2D) canvasGraphics;
     
     ballDiameter = 30;
     
@@ -106,7 +87,8 @@ public class GraphicsEngine
 
   
   
-  public void drawEverything (CurrentScreen currentScreen, Container container, BufferedImage offScreenCanvas) 
+  public void drawEverything (CurrentScreen currentScreen, Container container, BufferedImage offScreenCanvas,
+        EFCoord cameraPosition, EFResolution resolution) 
   {
     mouseX = gameEngine.getMouseXPosition();
     mouseY = gameEngine.getMouseYPosition();
@@ -123,40 +105,15 @@ public class GraphicsEngine
     }
     
     
-    for( int i = 0; i < buttonsToDraw.size(); i++ )
-    {
-      if( buttonsScreenContext.get(i) == currentScreen )
-      {
-        buttonsToDraw.get(i).drawButton(buttonsToDraw.get(i).isCursorOn(mouseX, mouseY), context,
-              cameraPosition);
-      }
-    }
-    
-    
-    helpMessageButton.drawButton(true, context, cameraPosition);
-    
     
     visableGraphics = container.getGraphics();
-    visableGraphics.drawImage (canvas, 0, 0, centerJPanel.getWidth(), centerJPanel.getHeight(), null); 
+    visableGraphics.drawImage (offScreenCanvas, 0, 0, container.getWidth(), container.getHeight(), null); 
     
-    
-    
-    if( !mainFrame.isVisible() )
-    {
-        isAlive = false;
-    }
   }
   
   
   
   //------------------------------------------------------------------------------------------------------------------\\
-  
-  
-  
-  public boolean getIsAlive()
-  {
-      return isAlive;
-  }
   
   
   public void loadButtonToDraw( EFButton button, CurrentScreen screenContext )
@@ -169,6 +126,15 @@ public class GraphicsEngine
   {
     c.setColor(Color.black);
     c.fillRect(0, 0, gameEngine.getCanvasWidth(), gameEngine.getCanvasHeight());
+    for( int i = 0; i < buttonsToDraw.size(); i++ )
+    {
+      if( buttonsScreenContext.get(i) == CurrentScreen.MAIN_SCREEN || 
+            buttonsScreenContext.get(i) == CurrentScreen.UNIVERSAL )
+      {
+        buttonsToDraw.get(i).drawButton(buttonsToDraw.get(i).isCursorOn(mouseX, mouseY), c,
+              cameraPosition);
+      }
+    }
   }
   
 
@@ -178,6 +144,44 @@ public class GraphicsEngine
     c.fillRect(0, 0, gameEngine.getCanvasWidth(), gameEngine.getCanvasHeight());
     
     c.setColor(Color.red);
+    c.fillOval(mouseX - (ballDiameter / 2), mouseY - (ballDiameter / 2), ballDiameter, ballDiameter);
+    
+    c.setColor(Color.yellow);
+    /*c.drawRect(1, 1, gameEngine.getCanvasWidth() - 2, gameEngine.getCanvasHeight() / 6);
+     * 
+     * c.drawRect(1, gameEngine.getCanvasHeight() / 6 + 2, gameEngine.getCanvasWidth() / 5,
+     * gameEngine.getCanvasHeight() - (gameEngine.getCanvasHeight() / 6 + 2));
+     * 
+     * c.drawRect(gameEngine.getCanvasWidth() / 5 + 2, gameEngine.getCanvasHeight() / 6 + 2,
+     * (int)((float)gameEngine.getCanvasWidth() / 2.5f),
+     * gameEngine.getCanvasHeight() / 6 + 2);
+     * 
+     * c.drawRect(gameEngine.getCanvasWidth() / 5 + 2 + (int)((float)gameEngine.getCanvasWidth() / 2.5f),
+     * gameEngine.getCanvasHeight() / 6 + 2,
+     * (int)((float)gameEngine.getCanvasWidth() / 2.5f) - 1,
+     * gameEngine.getCanvasHeight() / 6 + 2);
+     * 
+     * c.drawRect(gameEngine.getCanvasWidth() / 5 + 2,
+     * gameEngine.getCanvasHeight() / 6 + 2 + gameEngine.getCanvasHeight() / 6 + 2,
+     * (int)((float)gameEngine.getCanvasWidth() / 2.5f),
+     * gameEngine.getCanvasHeight() / 2 + 2);
+     * 
+     * c.drawRect(gameEngine.getCanvasWidth() / 5 + 2 + (int)((float)gameEngine.getCanvasWidth() / 2.5f),
+     * gameEngine.getCanvasHeight() / 6 + 2 + gameEngine.getCanvasHeight() / 6 + 2,
+     * (int)((float)gameEngine.getCanvasWidth() / 2.5f),
+     * (int)((float)gameEngine.getCanvasHeight() / 1.5) - 5);*/
+    
+    for( int i = 0; i < buttonsToDraw.size(); i++ )
+    {
+      if( buttonsScreenContext.get(i) == CurrentScreen.DEBUG || 
+            buttonsScreenContext.get(i) == CurrentScreen.UNIVERSAL )
+      {
+        buttonsToDraw.get(i).drawButton(buttonsToDraw.get(i).isCursorOn(mouseX, mouseY), c,
+              cameraPosition);
+      }
+    }
+    
+    c.setColor(new Color( Color.red.getRed(), Color.red.getGreen(), Color.red.getBlue(), 64));
     c.fillOval(mouseX - (ballDiameter / 2), mouseY - (ballDiameter / 2), ballDiameter, ballDiameter);
   }
   

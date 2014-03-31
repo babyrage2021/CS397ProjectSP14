@@ -64,7 +64,18 @@ public class GameEngine extends Thread
   private EFButton toMainFromDebug;
   private EFButton iniStatus;
   
+  private EFButton menuBar;
+  private EFButton objectList;
+  private EFButton acceptButton;
+  private EFButton denyButton;
+  private EFButton objectAtAGlance;
+  private EFButton openDetails;
+  private EFButton currentRules;
+  
 //</editor-fold>
+  
+  private EFButton acceptButtonForView;
+  private EFButton denyButtonForView;
   
 //</editor-fold>
   
@@ -88,6 +99,7 @@ public class GameEngine extends Thread
 
   public GameEngine()
   {
+    graphicsEngine = new GraphicsEngine(this);
     masterBool = true;
     currentScreen = CurrentScreen.MAIN_SCREEN;
     iniParser = new EFIniParser("Resources/Settings.ini");
@@ -101,7 +113,9 @@ public class GameEngine extends Thread
 
     timeGetter = new Date();
     
-    screenSize = new Dimension(1024, 768);
+    screenSize = new Dimension(Integer.parseInt(iniParser.getValue("window.width")),
+     Integer.parseInt(iniParser.getValue("window.height")));
+    //screenSize = new Dimension(600,400);
     mainFrame = new JFrame();
     centerJPanel = new JPanel();
     
@@ -138,8 +152,8 @@ public class GameEngine extends Thread
     
     visableGraphics = centerJPanel.getGraphics();
     
-    canvasWidth = 1024;
-    canvasHeight = 768;
+    canvasWidth = Integer.parseInt(iniParser.getValue("resolution.width"));
+    canvasHeight = Integer.parseInt(iniParser.getValue("resolution.height"));
     canvasSize = new Dimension(canvasWidth, canvasHeight);
     canvas = new BufferedImage(canvasSize.width, canvasSize.height, BufferedImage.TYPE_4BYTE_ABGR );
     canvasGraphics = (Graphics2D) canvas.getGraphics();
@@ -152,26 +166,94 @@ public class GameEngine extends Thread
     buttonsToDraw = new ArrayList();
     buttonsScreenContext = new ArrayList();
     
-    helpMessageButton = new EFButton(canvasGraphics, 0, 0, "", EFButton.defaultFont, new Color(0f, 0f, 0f, 0f), 
-                  Color.black, DisplayType.TOP_LEFT, BorderType.LINE, 2, 
-                  1f, new Color(0f,0f,0f,0f), Color.black, BackgroundType.OPAQUE, new Color(0f,0f,0f,0f), Color.yellow, 
-                  1);
+    helpMessageButton = new EFButton(canvasGraphics, 0, 0, "", EFButton.defaultFont, Color.black,
+          new Color(0f, 0f, 0f, 0f), DisplayType.TOP_LEFT, BorderType.LINE, 2, 1f, Color.black, 
+          new Color(0f,0f,0f,0f), BackgroundType.OPAQUE,  Color.yellow, new Color(0f,0f,0f,0f), 1);
     helpMessageButton.shouldDraw = false;
+    
     
     //<editor-fold defaultstate="collapsed" desc="DEBUG">
     EFButton.setDefaultBorderBuffer(5);
 
     
     EFButton.defaultDisplayType = DisplayType.TOP_LEFT;
-    this.iniStatus = new EFButton(canvasGraphics, 1, 1, iniParser.getValue("test"));
-    buttonsToDraw.add(iniStatus);
-    buttonsScreenContext.add(CurrentScreen.DEBUG);
+    this.iniStatus = new EFButton(canvasGraphics, 1, 1, iniParser.getValue("test.2"));
     
     EFButton.defaultDisplayType = DisplayType.TOP_RIGHT;
     toMainFromDebug = new EFButton(canvasGraphics, canvas.getWidth() - 1, 1, "Main Menu");
-    buttonsToDraw.add(toMainFromDebug);
-    buttonsScreenContext.add(CurrentScreen.DEBUG);
-  
+    
+    EFButton.defaultMainBackgroundColor = Color.pink;
+    EFButton.defaultMainBorderColor = Color.green;
+    EFButton.defaultActivatedBackgroundColor = Color.blue;
+    EFButton.defaultMainBorderColor = Color.blue;
+    EFButton.defaultActivatedBorderColor = Color.yellow;
+    EFButton.defaultBorderType = BorderType.LINE;
+    EFButton.defaultMainMessageColor = Color.black;
+    EFButton.defaultBackgroundType = BackgroundType.OPAQUE;
+    
+    EFButton.defaultDisplayType = DisplayType.TOP_LEFT;
+    menuBar = new EFButton(canvasGraphics, 1, 1, "menu/health/sheilds");
+    menuBar.setCustomBorderXLength(getCanvasWidth() - 3);
+    menuBar.setCustomBorderYLength(getCanvasHeight() / 6 - 2);
+    graphicsEngine.loadButtonToDraw(menuBar, CurrentScreen.DEBUG);
+    
+    objectList = new EFButton(canvasGraphics, 1, getCanvasHeight() / 6 + 1, 
+          "ObjectList");
+    objectList.setCustomBorderXLength(getCanvasWidth() / 5 - 2);
+    objectList.setCustomBorderYLength(getCanvasHeight() - (getCanvasHeight() / 6 + 3));
+    graphicsEngine.loadButtonToDraw(objectList, CurrentScreen.DEBUG);
+    
+    acceptButton = new EFButton(canvasGraphics, getCanvasWidth() / 5 + 1, getCanvasHeight() / 6 + 1,
+    "Accept");
+    acceptButton.setCustomBorderXLength((int)((float)getCanvasWidth() / 2.5f));
+    acceptButton.setCustomBorderYLength(getCanvasHeight() / 6 + 2);
+    graphicsEngine.loadButtonToDraw(acceptButton, CurrentScreen.DEBUG);
+    
+    denyButton = new EFButton(canvasGraphics, 
+          getCanvasWidth() / 5 + 3 + (int)((float)getCanvasWidth() / 2.5f), 
+          getCanvasHeight() / 6 + 1, "Deny");
+    denyButton.setCustomBorderXLength((int)((float)getCanvasWidth() / 2.5f) - 5);
+    denyButton.setCustomBorderYLength(getCanvasHeight() / 6 + 2);
+    graphicsEngine.loadButtonToDraw(denyButton, CurrentScreen.DEBUG);
+    
+    objectAtAGlance = new EFButton(canvasGraphics,
+    getCanvasWidth() / 5 + 1,
+    getCanvasHeight() / 6 + 3 + getCanvasHeight() / 6 + 2,
+    "ObjectAtAGlance");
+    objectAtAGlance.setCustomBorderXLength((int)((float)getCanvasWidth() / 2.5f));
+    objectAtAGlance.setCustomBorderYLength(getCanvasHeight() / 2 + 2);
+    graphicsEngine.loadButtonToDraw(objectAtAGlance, CurrentScreen.DEBUG);
+    
+    openDetails = new EFButton(canvasGraphics,
+    getCanvasWidth() / 5 + 1,
+    getCanvasHeight() / 6 + 3 + getCanvasHeight() / 6 + 3 + getCanvasHeight() / 2 + 3,
+    "openDetails");
+    openDetails.setCustomBorderXLength((int)((float)getCanvasWidth() / 2.5f));
+    openDetails.setCustomBorderYLength(getCanvasHeight() - (getCanvasHeight() / 2 + 2) - 
+          (getCanvasHeight() / 6 + 2) - (getCanvasHeight() / 6 + 2) - 5);
+    graphicsEngine.loadButtonToDraw(openDetails, CurrentScreen.DEBUG);
+    
+    currentRules = new EFButton(canvasGraphics,
+    getCanvasWidth() / 5 + 2 + (int)((float)getCanvasWidth() / 2.5f) + 1,
+    getCanvasHeight() / 6 + 2 + getCanvasHeight() / 6 + 3,
+    "currentRules");
+    currentRules.setCustomBorderXLength((int)((float)getCanvasWidth() / 2.5f) - 5);
+    currentRules.setCustomBorderYLength((int)((float)getCanvasHeight() / 1.5) - 6);
+    graphicsEngine.loadButtonToDraw(currentRules, CurrentScreen.DEBUG);
+   
+    /*    private EFButton menuBar;
+     * private EFButton objectList;
+     * private EFButton acceptButton;
+     * private EFButton denyButton;
+     * private EFButton objectAtAGlance;
+     * private EFButton openDetails;
+     * private EFButton approveButton;*/
+    
+    
+    
+    graphicsEngine.loadButtonToDraw(iniStatus, CurrentScreen.DEBUG);
+    graphicsEngine.loadButtonToDraw(toMainFromDebug, CurrentScreen.DEBUG);
+    
 //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="MAIN_MENU">
@@ -183,13 +265,14 @@ public class GameEngine extends Thread
           canvas.getHeight() / 2, "Debug");
     toDebugFromMain.setMainIcon("Resources/buttonFrame.png");
     toDebugFromMain.setActivatedIcon("Resources/buttonFrame2.png");
-    toDebugFromMain.setIsUsingCustomLengths(true);
     toDebugFromMain.setCustomBorderXLength(100);
     toDebugFromMain.setCustomBorderYLength(100);
-    buttonsToDraw.add(toDebugFromMain);
-    buttonsScreenContext.add(CurrentScreen.MAIN_SCREEN);
+    graphicsEngine.loadButtonToDraw(toDebugFromMain, CurrentScreen.MAIN_SCREEN);
+    toDebugFromMain.addNewPreset("test", new EFButton(canvasGraphics, 50, 50, "HI"));
     
 //</editor-fold>
+    
+    graphicsEngine.loadButtonToDraw(helpMessageButton, CurrentScreen.UNIVERSAL);
     
 //</editor-fold>
     
@@ -197,9 +280,6 @@ public class GameEngine extends Thread
     centerJPanel.addMouseListener(this);
     centerJPanel.addMouseMotionListener(this);
     mainFrame.addKeyListener(this);
-    
-    graphicsEngine = new GraphicsEngine(this, mainFrame, centerJPanel, canvas, canvasGraphics, cameraPosition,
-          resolution, buttonsToDraw, buttonsScreenContext, helpMessageButton);
   }
 
 
@@ -228,7 +308,7 @@ public class GameEngine extends Thread
       {
         
         timeTracker.feedInitialTime(GRAPHICS_TAG, System.currentTimeMillis());
-        graphicsEngine.drawEverything(currentScreen, centerJPanel, canvas);
+        graphicsEngine.drawEverything(currentScreen, centerJPanel, canvas, cameraPosition, resolution);
         timeTracker.feedFinalTime(GRAPHICS_TAG, System.currentTimeMillis());
         
       }
@@ -361,6 +441,12 @@ public class GameEngine extends Thread
             helpMessageButton.shouldDraw = true;
           }
         }
+      }
+      
+      if (e.getKeyCode() == 72) //h
+      {
+      
+        toDebugFromMain.loadPreset("test");
       }
     }
   }

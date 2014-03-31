@@ -19,6 +19,7 @@ package basicprojectv3;
  */
 public enum CurrentScreen
 {
+  UNIVERSAL,
   LOADING_ON_FIRST_OPEN,
   MAIN_SCREEN,
   DEBUG;

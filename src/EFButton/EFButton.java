@@ -66,6 +66,9 @@ public class EFButton implements EFHelpTag {
   private BufferedImage activatedIcon;
   private Graphics2D g;
   
+  private ArrayList<String> presetNames;
+  private ArrayList<EFButton> presets;
+  
   public static Graphics2D defaultGraphics = (Graphics2D) new BufferedImage(100, 100, 
         BufferedImage.TYPE_4BYTE_ABGR ).getGraphics();
   
@@ -265,10 +268,51 @@ public class EFButton implements EFHelpTag {
   
   
   public EFButton( Graphics2D g, int x, int y, String message, Font font, Color mainMessageColor, 
-                  Color activatedMessageColor, DisplayType displayType, BorderType borderType, int borderBuffer, 
+                  Color activatedMessageColor, DisplayType displayType, BorderType borderType, 
+                  int borderBuffer, 
                   float borderThickness, Color mainBorderColor, Color activatedBorderColor, 
                   BackgroundType backgroundType, Color mainBackgroundColor, Color activatedBackgroundColor, 
-                  int backgroundTransperency, Color gradientColor1, Color gradientColor2, int dashLength, BufferedImage icon )
+                  int backgroundTransperency, Color gradientColor1, Color gradientColor2, int dashLength, 
+                  BufferedImage icon )
+  {
+  
+    this(g, x, y, message, font, mainMessageColor, activatedMessageColor, displayType, borderType,
+          borderBuffer, borderThickness,
+          mainBorderColor, activatedBorderColor, backgroundType, mainBackgroundColor,
+          activatedBackgroundColor, backgroundTransperency, defaultGradientColor1, defaultGradientColor2,
+          defaultDashLength, defaultIcon, true, "helpMessage", new ArrayList(), new ArrayList()
+    );
+    
+    
+    shouldDraw = true;
+    helpMessage = "helpMessage";
+    presetNames = new ArrayList();
+    presets = new ArrayList();
+    
+    
+    addNewPreset("Default",
+          new EFButton(g, x, y, message, font, mainMessageColor, activatedMessageColor, displayType,
+                borderType,
+                borderBuffer, borderThickness,
+                mainBorderColor, activatedBorderColor, backgroundType, mainBackgroundColor,
+                activatedBackgroundColor, backgroundTransperency, defaultGradientColor1, defaultGradientColor2,
+                defaultDashLength, defaultIcon, shouldDraw, helpMessage, new ArrayList(), new ArrayList())
+    );
+  }
+  
+  
+  
+  
+  
+  public EFButton( Graphics2D g, int x, int y, String message, Font font, Color mainMessageColor, 
+                  Color activatedMessageColor, DisplayType displayType, BorderType borderType, 
+                  int borderBuffer, 
+                  float borderThickness, Color mainBorderColor, Color activatedBorderColor, 
+                  BackgroundType backgroundType, Color mainBackgroundColor, Color activatedBackgroundColor, 
+                  int backgroundTransperency, Color gradientColor1, Color gradientColor2, int dashLength,
+                  BufferedImage icon, boolean shouldDraw, String helpMessage, 
+                  ArrayList<String> presetNames, 
+                  ArrayList<EFButton> presets )
   {
     this.g = g;
     this.x = x;
@@ -297,9 +341,10 @@ public class EFButton implements EFHelpTag {
     this.dashLength = dashLength;
     this.getFontMetrics();
     setBorderBuffer(borderBuffer);
-    gradient = new GradientPaint( borderX + (int)( (float)borderXLength / 2F ), borderY, new Color( 0.9F, 0.9F, 0.9F ),
-                                 borderX + (int)( (float)borderXLength / 2F ),  borderY + borderYLength, Color.darkGray, 
-                                 true );
+    gradient = new GradientPaint( borderX + (int)( (float)borderXLength / 2F ), 
+          borderY, new Color( 0.9F, 0.9F, 0.9F ),
+                                 borderX + (int)( (float)borderXLength / 2F ),  
+          borderY + borderYLength, Color.darkGray, true );
     
     if(icon != null)
     {
@@ -308,10 +353,11 @@ public class EFButton implements EFHelpTag {
     {
       this.mainIcon = null;
     }
-    shouldDraw = true;
-    helpMessage = "helpMEssage";
+    this.shouldDraw = shouldDraw;
+    this.helpMessage = helpMessage;
+    this.presetNames = presetNames;
+    this.presets = presets;
   }
-  
   
   
   
@@ -475,6 +521,7 @@ public class EFButton implements EFHelpTag {
   
   public void setCustomBorderXLength(int customBorderXLength)
   {
+    this.isUsingCustomLengths = true;
     this.customBorderXLength = customBorderXLength;
       setBorderBuffer(borderBuffer);
     setX(x);
@@ -492,6 +539,7 @@ public class EFButton implements EFHelpTag {
   
   public void setCustomBorderYLength(int customBorderYLength)
   {
+    this.isUsingCustomLengths = true;
     this.customBorderYLength = customBorderYLength;
       setBorderBuffer(borderBuffer);
     setX(x);
@@ -979,6 +1027,77 @@ public class EFButton implements EFHelpTag {
   public void setHelpMessage(String helpMessage)
   {
     this.helpMessage = helpMessage;
+  }
+  
+  
+  
+  public void addNewPreset(String presetName, EFButton newPreset)
+  {
+    if( !presetNames.contains(presetName))
+    {
+      presetNames.add(presetName);
+      presets.add(newPreset);
+    }
+  }
+  
+  
+  public void loadPreset(String presetName)
+  {
+    if( presetNames.contains(presetName))
+    {
+      presetNames.indexOf(presetName);
+      System.out.println(presetNames.indexOf(presetName));
+      
+      EFButton template = presets.get(presetNames.indexOf(presetName));
+      
+      this.g = template.g;
+      this.x = template.x;
+      this.y = template.y;
+      this.isUsingCustomLengths = template.isUsingCustomLengths;
+      this.customBorderXLength = template.customBorderXLength;
+      this.customBorderYLength = template.customBorderYLength;
+      this.message = template.message;
+      this.font = template.font;
+      this.mainMessageColor = template.mainMessageColor;
+      this.activatedMessageColor = template.activatedMessageColor;
+      this.displayType = template.displayType;
+
+      this.borderType = template.borderType;
+      this.borderThickness = template.borderThickness;
+      this.mainBorderColor = template.mainBorderColor;
+      this.activatedBorderColor = template.activatedBorderColor;
+
+      this.mainBackgroundColor = template.mainBackgroundColor;
+      this.activatedBackgroundColor = template.activatedBackgroundColor;
+      this.backgroundTransperency = template.backgroundTransperency;
+      this.backgroundType = template.backgroundType;
+      this.gradientColor1 = template.gradientColor1;
+      this.gradientColor2 = template.gradientColor2;
+
+      this.dashLength = template.dashLength;
+      this.getFontMetrics();
+      setBorderBuffer(template.borderBuffer);
+      this.gradient = template.gradient;
+
+      if (template.mainIcon != null)
+      {
+        this.mainIcon = template.mainIcon;
+      } else
+      {
+        this.mainIcon = null;
+      }
+      if (template.activatedIcon != null)
+      {
+        this.activatedIcon = template.activatedIcon;
+      } else
+      {
+        this.activatedIcon = null;
+      }
+      this.shouldDraw = template.shouldDraw;
+      this.helpMessage = template.helpMessage;
+      setX(x);
+      setY(y);
+    }
   }
 }
 
