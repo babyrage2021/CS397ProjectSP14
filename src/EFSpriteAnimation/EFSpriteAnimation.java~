@@ -1,0 +1,322 @@
+package EFSpriteAnimation;
+
+import java.io.*;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.awt.*;
+import java.awt.image.*;
+import javax.imageio.*;
+import EFTimeTracker.*;
+
+
+
+
+
+
+
+//*EFTimeTracker Program*\\
+//*PURPOSE:*\\
+//*) Will grab all .png's in a given directory and store them in an array
+//*) Using the EFTimeTracker class, a current frame is selected and can be getted
+
+//*HOW TO USE:*\\
+//*1) Create an EFTimeTracker
+
+//*GOALS:*\\
+//*) make function to change eventname
+//*) make function to change firerateps
+public class EFSpriteAnimation 
+{
+  private String directory;
+  private BufferedImage[] spriteArray;
+  private int numberOfFrames;
+  private int frameCounter;
+  private String targetExtension;
+  private EFTimeTracker timeTracker;
+  private String timeTrackerName;
+  private long frameLength;
+  private EFSpriteFrameChecker frameChecker;
+  private long[] specificFrameLengths;
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  public EFSpriteAnimation( String directory )
+  {
+    this.directory = directory;
+    frameCounter = 0;
+    targetExtension = ".png";
+    
+    spriteArray = finder(directory);
+    numberOfFrames = spriteArray.length;
+    
+    timeTrackerName = "";
+    frameLength = 1;
+    timeTracker = null;
+  }
+  
+  
+  
+  
+  
+  
+  
+  public EFSpriteAnimation( String directory, EFTimeTracker timeTracker, long frameLength )
+  {
+    this.directory = directory;
+    frameCounter = 0;
+    targetExtension = ".png";
+    
+    spriteArray = finder(directory);
+    numberOfFrames = spriteArray.length;
+    
+    this.timeTracker = timeTracker;
+    this.frameLength = frameLength;
+    registerAnimation();
+    getProperties();
+    
+    frameChecker = new EFSpriteFrameChecker( timeTrackerName, timeTracker, timeTrackerName, this );
+  }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  public BufferedImage getCurrentFrame()
+  {
+    return spriteArray[frameCounter];
+  }
+  
+  
+  
+  
+  
+  
+  
+  public void advanceFrame( int number )
+  {
+    for( int i = 0; i < number; i++ )
+    {
+      frameCounter++;
+      if( frameCounter > numberOfFrames - 1 ) frameCounter = 0;
+    }
+    frameLength = specificFrameLengths[frameCounter];
+  }
+  
+  
+  
+  
+  
+  
+  
+  public void advanceFrame()
+  {
+    frameCounter++;
+    if( frameCounter > numberOfFrames - 1 ) frameCounter = 0;
+    frameLength = specificFrameLengths[frameCounter];
+  }
+  
+  
+  
+  
+  
+  
+  
+  public void drawFrame( Graphics2D g, int x, int y )
+  {
+    
+    
+    g.drawImage( getCurrentFrame(), x, y, null );
+  }
+  
+  
+  
+  
+  
+  
+  
+  public long getCurrentFrameLength()
+  {
+    return specificFrameLengths[frameCounter];
+  }
+  
+  
+  
+  
+  
+  
+  
+  public String getName()
+  {
+    return timeTrackerName;
+  }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  private BufferedImage[] finder( String dirName )
+  {
+     File dir = new File(dirName);
+     File[] fileArray = null;
+     BufferedImage[] imageArray = null;
+
+     fileArray = dir.listFiles(new FilenameFilter() { 
+              public boolean accept(File dir, String filename)
+                   { return filename.endsWith(targetExtension); }
+     } );
+     
+     imageArray = new BufferedImage[fileArray.length];
+     
+     for( int i = 0; i < fileArray.length; i++ )
+     {
+       try {
+         imageArray[i] = ImageIO.read(fileArray[i]);
+       } catch (IOException e) {
+       }
+     }
+     return imageArray;
+  }
+  
+  
+  
+  
+  
+  
+  
+  private void registerAnimation()
+  {
+    if( timeTrackerName != "" )
+    {
+      timeTracker.removeEFTimeEvent(timeTrackerName);
+    }
+    
+    int animationCounter = 0;
+    
+    while( timeTracker.isNameRegistered("_$EF_SPRITE_ANIMATION_#" + animationCounter ) )
+    {
+      animationCounter++;
+    }
+    timeTracker.addEFTimeEvent( "_$EF_SPRITE_ANIMATION_#" + animationCounter, frameLength );
+    timeTrackerName = "_$EF_SPRITE_ANIMATION_#" + animationCounter;
+    
+  }
+  
+  
+  
+  
+  
+  
+  
+  private void registerAnimation( String animationName )
+  {
+    if( timeTrackerName != "" )
+    {
+      timeTracker.removeEFTimeEvent(timeTrackerName);
+    }
+    
+    if( !timeTracker.isNameRegistered(animationName) )
+    {
+      timeTracker.addEFTimeEvent( animationName, frameLength );
+      timeTrackerName = animationName;
+    }
+    else
+    {
+      
+      int animationCounter = 1;
+      
+      while( timeTracker.isNameRegistered(animationName + animationCounter ) )
+      {
+        animationCounter++;
+      }
+      
+      timeTracker.addEFTimeEvent( animationName + animationCounter, frameLength );
+      timeTrackerName = animationName + animationCounter;
+    }
+    frameChecker = new EFSpriteFrameChecker( timeTrackerName, timeTracker, timeTrackerName, this );
+    
+  }
+  
+  
+  
+  
+  
+  
+  
+  private void getProperties()
+  {
+    specificFrameLengths = new long[numberOfFrames];
+    
+    for( int i = 0; i < numberOfFrames; i++ )
+    {
+      specificFrameLengths[i] = frameLength;
+    }
+    
+    
+    try
+    {
+      BufferedReader br = new BufferedReader(new FileReader( directory + "properties.txt" ));
+      String line;
+      while ((line = br.readLine()) != null) {
+        String[] framePairs = line.split(";");
+        
+        if( framePairs[0] == "Name" )
+        {
+          registerAnimation(framePairs[1]);
+        }
+        else 
+        {
+          registerSpecificFrameLength( Integer.parseInt(framePairs[0]), Long.parseLong(framePairs[1]) );
+        }
+        
+      }
+      br.close();
+    } catch ( Exception e ) {}
+    
+  }
+  
+  
+  
+  
+  
+  
+  
+  private void registerSpecificFrameLength( int index, long frameLength )
+  {
+    if( index >= 0 && index < numberOfFrames )
+    {
+      specificFrameLengths[index] = frameLength;
+    }
+  }
+}

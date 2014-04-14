@@ -1,0 +1,20 @@
+package EFButton;
+
+import java.io.*;
+
+
+
+
+
+
+
+public enum BorderType 
+  {
+    NONE,
+      THIN,
+      THICK,
+      THIN_DOTS,
+      THICK_DOTS,
+      THIN_DASHES,
+      THICK_DASHES;
+  }
