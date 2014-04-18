@@ -1,7 +1,7 @@
 //MainPanel.java
 //Author: Taylor Cogdill
 //Purpose: Creates a JPanel that the game will run in and be drawn on
-//Quick use guide: Just construct a new MainPanel and call start()
+//Quick use guide: Just construct a new MainPanel and call start()test`124
 package basicprojectv3;
 
 import EFButton.*;
