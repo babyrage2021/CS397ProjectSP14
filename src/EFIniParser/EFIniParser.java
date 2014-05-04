@@ -71,7 +71,7 @@ public class EFIniParser
         else if( framePairs.length != 2 )
         {
           System.out.println("\t_$EF_!ERROR: Error in properties file. Syntax must be in the form \"keyword" +
-                             ";input\"." );
+                             "=input\"." );
         }
         else
         {

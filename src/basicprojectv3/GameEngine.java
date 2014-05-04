@@ -340,16 +340,18 @@ public final class GameEngine extends Thread
     graphicsEngine.loadButtonToDraw(denyButton, CurrentScreen.IN_GAME_MAIN);
     graphicsEngine.loadButtonToDraw(denyButton, CurrentScreen.IN_GAME_VIEW_DETAILS);
     
-    EFButton.defaultBackgroundType = BackgroundType.OPAQUE;
     objectAtAGlance = new EFButton(canvasGraphics,
     getCanvasWidth() / 5 + 1,
     getCanvasHeight() / 6 + 3 + getCanvasHeight() / 6 + 2,
     "ObjectAtAGlance");
+    objectAtAGlance.setMainIcon(buttonParser.getValue("objectAtAGlance.mainIcon"));
+    objectAtAGlance.setActivatedIcon(buttonParser.getValue("objectAtAGlance.activatedIcon"));
     objectAtAGlance.setCustomBorderXLength((int)((float)getCanvasWidth() / 2.5f));
     objectAtAGlance.setCustomBorderYLength(getCanvasHeight() / 2 + 2);
     graphicsEngine.loadButtonToDraw(objectAtAGlance, CurrentScreen.DEBUG);
     graphicsEngine.loadButtonToDraw(objectAtAGlance, CurrentScreen.IN_GAME_MAIN);
     
+    EFButton.defaultBackgroundType = BackgroundType.OPAQUE;
     objectAtAGlanceImage = new EFScrollableRegion(getCanvasWidth() / 5 + 1,
     getCanvasHeight() / 6 + 3 + getCanvasHeight() / 6 + 2,
     (int)((float)getCanvasWidth() / 2.5f),
