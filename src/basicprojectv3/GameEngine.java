@@ -1,7 +1,7 @@
 //MainPanel.java
 //Author: Taylor Cogdill
 //Purpose: Creates a JPanel that the game will run in and be drawn on
-//Quick use guide: Just construct a new MainPanel and call start()test`124
+//Quick use guide: Just construct a new MainPanel and call start()
 package basicprojectv3;
 
 import EFButton.*;
@@ -39,6 +39,7 @@ public final class GameEngine extends Thread
   private boolean masterBool;
   private CurrentScreen currentScreen;
   private EFIniParser iniParser;
+  private EFIniParser buttonParser;
   private int mouseX;
   private int mouseY;
   
@@ -140,6 +141,7 @@ public final class GameEngine extends Thread
     masterBool = true;
     currentScreen = CurrentScreen.MAIN_SCREEN;
     iniParser = new EFIniParser("Resources/Settings.ini");
+    buttonParser = new EFIniParser("Resources/ButtonData/Settings.ini");
     mouseX = 0;
     mouseY = 0;
     cameraPosition = new EFCoord();
@@ -277,9 +279,12 @@ public final class GameEngine extends Thread
       graphicsEngine.loadButtonToDraw(objectButtons.get(i), CurrentScreen.IN_GAME_VIEW_DETAILS);
     }
     
+    EFButton.defaultBackgroundType = BackgroundType.ICON;
     objectListUpButton = new EFButton(canvasGraphics, 1,
     getCanvasHeight() / 6 + 1,
     "Up");
+    objectListUpButton.setMainIcon(buttonParser.getValue("objectListUpButton.mainIcon"));
+    objectListUpButton.setActivatedIcon(buttonParser.getValue("objectListUpButton.activatedIcon"));
     objectListUpButton.setCustomBorderXLength(getCanvasWidth() / 5 - 2);
     objectListUpButton.setCustomBorderYLength(getCanvasWidth() / 30 - 2);
     graphicsEngine.loadButtonToDraw(objectListUpButton, CurrentScreen.DEBUG);
@@ -290,6 +295,8 @@ public final class GameEngine extends Thread
     objectListDownButton = new EFButton(canvasGraphics, 1, 
           (int)(19f * (float)getCanvasHeight() / 20f),
           "Down");
+    objectListDownButton.setMainIcon(buttonParser.getValue("objectListDownButton.mainIcon"));
+    objectListDownButton.setActivatedIcon(buttonParser.getValue("objectListDownButton.activatedIcon"));
     objectListDownButton.setCustomBorderXLength(getCanvasWidth() / 5 - 2);
     objectListDownButton.setCustomBorderYLength(getCanvasWidth() / 30 - 2);
     graphicsEngine.loadButtonToDraw(objectListDownButton, CurrentScreen.DEBUG);
@@ -299,6 +306,8 @@ public final class GameEngine extends Thread
     
     acceptButton = new EFButton(canvasGraphics, getCanvasWidth() / 5 + 1, getCanvasHeight() / 6 + 1,
     "Accept");
+    acceptButton.setMainIcon(buttonParser.getValue("acceptButton.mainIcon"));
+    acceptButton.setActivatedIcon(buttonParser.getValue("acceptButton.activatedIcon"));
     acceptButton.setCustomBorderXLength((int)((float)getCanvasWidth() / 2.5f));
     acceptButton.setCustomBorderYLength(getCanvasHeight() / 6 + 2);
     graphicsEngine.loadButtonToDraw(acceptButton, CurrentScreen.DEBUG);
@@ -315,6 +324,8 @@ public final class GameEngine extends Thread
     denyButton = new EFButton(canvasGraphics, 
           getCanvasWidth() / 5 + 3 + (int)((float)getCanvasWidth() / 2.5f), 
           getCanvasHeight() / 6 + 1, "Deny");
+    denyButton.setMainIcon(buttonParser.getValue("denyButton.mainIcon"));
+    denyButton.setActivatedIcon(buttonParser.getValue("denyButton.activatedIcon"));
     denyButton.setCustomBorderXLength((int)((float)getCanvasWidth() / 2.5f) - 5);
     denyButton.setCustomBorderYLength(getCanvasHeight() / 6 + 2);
     denyButton.addNewPreset("Default", denyButton);
@@ -329,6 +340,7 @@ public final class GameEngine extends Thread
     graphicsEngine.loadButtonToDraw(denyButton, CurrentScreen.IN_GAME_MAIN);
     graphicsEngine.loadButtonToDraw(denyButton, CurrentScreen.IN_GAME_VIEW_DETAILS);
     
+    EFButton.defaultBackgroundType = BackgroundType.OPAQUE;
     objectAtAGlance = new EFButton(canvasGraphics,
     getCanvasWidth() / 5 + 1,
     getCanvasHeight() / 6 + 3 + getCanvasHeight() / 6 + 2,
@@ -373,13 +385,6 @@ public final class GameEngine extends Thread
     
     graphicsEngine.loadRegionToDraw(currentRulesImage, CurrentScreen.IN_GAME_MAIN);
    
-    /*    private EFButton menuBar;
-     * private EFButton objectList;
-     * private EFButton acceptButton;
-     * private EFButton denyButton;
-     * private EFButton objectAtAGlance;
-     * private EFButton openDetails;
-     * private EFButton approveButton;*/
     
     
     
@@ -395,8 +400,8 @@ public final class GameEngine extends Thread
     EFButton.defaultBackgroundType = BackgroundType.ICON;
     toDebugFromMain = new EFButton(canvasGraphics, canvas.getWidth() / 2,
           canvas.getHeight() / 2, "Debug");
-    toDebugFromMain.setMainIcon("Resources/buttonFrame.png");
-    toDebugFromMain.setActivatedIcon("Resources/buttonFrame2.png");
+    toDebugFromMain.setMainIcon(buttonParser.getValue("toDebugFromMain.mainIcon"));
+    toDebugFromMain.setActivatedIcon(buttonParser.getValue("toDebugFromMain.activatedIcon"));
     toDebugFromMain.setCustomBorderXLength(100);
     toDebugFromMain.setCustomBorderYLength(100);
     graphicsEngine.loadButtonToDraw(toDebugFromMain, CurrentScreen.MAIN_SCREEN);
