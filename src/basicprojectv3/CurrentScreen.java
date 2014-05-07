@@ -26,7 +26,8 @@ public enum CurrentScreen
   MAIN_SCREEN,
   LOADING_BEFORE_LEVEL,
   DEBUG,
-  DEBUG_VIEW_DETAILS;
+  DEBUG_VIEW_DETAILS,
+  PRE_LOAD;
 }
 
 

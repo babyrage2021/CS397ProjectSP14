@@ -7,6 +7,7 @@ package basicprojectv3;
 import EFButton.*;
 import EFCoord.*;
 import EFHelpTag.*;
+import EFIniParser.EFIniParser;
 import EFResolution.*;
 import EFScrollableRegion.EFScrollableRegion;
 import EFTimeTracker.*;
@@ -18,6 +19,7 @@ import java.awt.image.*;
 import java.io.*;
 import java.util.*;
 import java.util.Date;
+import javax.imageio.ImageIO;
 import javax.swing.*;
 
 
@@ -35,6 +37,7 @@ public class GraphicsEngine
   private int mouseX;
   private int mouseY;
   private boolean isAlive;
+  private EFIniParser iniParser;
   
   //*Graphical variables*\\
   private JPanel centerJPanel;
@@ -56,6 +59,10 @@ public class GraphicsEngine
   
   ArrayList<EFScrollableRegion> regionsToDraw;
   ArrayList<CurrentScreen> regionsScreenContext;
+  
+  private BufferedImage windowBorderImage;
+  
+  private BufferedImage debugRoughBackgroundImage;
   
   //*Graphics context for double buffering*\\
   private Graphics visableGraphics;
@@ -79,11 +86,20 @@ public class GraphicsEngine
     buttonsScreenContext = new ArrayList();
     regionsToDraw = new ArrayList();
     regionsScreenContext = new ArrayList();
+    iniParser = new EFIniParser("Resources/Settings.ini");
     
     mouseX = 0;
     mouseY = 0;
     
     ballDiameter = 30;
+    
+    try
+    {
+      windowBorderImage= ImageIO.read(new File(iniParser.getValue("window.backgroundImage")));
+      debugRoughBackgroundImage = ImageIO.read(new File(iniParser.getValue("inGameMain.backgroundImage")));
+    } catch (IOException e)
+    {
+    }
     
   }
   
@@ -100,6 +116,10 @@ public class GraphicsEngine
     mouseY = gameEngine.getMouseYPosition();
     
     Graphics2D context = (Graphics2D)offScreenCanvas.getGraphics();
+    
+    context.setColor(Color.black);
+    context.fillRect(0, 0, gameEngine.getCanvasWidth(), gameEngine.getCanvasHeight());
+    context.drawImage(windowBorderImage, 0, 0, gameEngine.getCanvasWidth(), gameEngine.getCanvasHeight(), null);
     
     if( currentScreen == CurrentScreen.MAIN_SCREEN)
     {
@@ -125,6 +145,10 @@ public class GraphicsEngine
     {
       drawForInGameViewDetails(context);
     }
+    else if(currentScreen == CurrentScreen.PRE_LOAD)
+    {
+      drawForPreLoad(context);
+    }
     
     //helpMessageButton.drawButton(false, context, cameraPosition);
     
@@ -146,8 +170,6 @@ public class GraphicsEngine
   
   private void drawForMainMenu(Graphics2D c)
   {
-    c.setColor(Color.black);
-    c.fillRect(0, 0, gameEngine.getCanvasWidth(), gameEngine.getCanvasHeight());
     for( int i = 0; i < buttonsToDraw.size(); i++ )
     {
       if( buttonsScreenContext.get(i) == CurrentScreen.MAIN_SCREEN || 
@@ -162,42 +184,33 @@ public class GraphicsEngine
 
   private void drawForDebug(Graphics2D c)
   {
-    c.setColor(Color.black);
-    c.fillRect(0, 0, gameEngine.getCanvasWidth(), gameEngine.getCanvasHeight());
     
-    c.setColor(Color.red);
-    c.fillOval(mouseX - (ballDiameter / 2), mouseY - (ballDiameter / 2), ballDiameter, ballDiameter);
+    
+    if(gameEngine.getShouldDrawRoughBackground())
+    {
+      c.drawImage(debugRoughBackgroundImage, 0, 0, gameEngine.getCanvasWidth(), gameEngine.getCanvasHeight(), null);
+    }
+    
     
     c.setColor(Color.yellow);
     
     drawButtons(c, CurrentScreen.DEBUG);
     
-    c.setColor(new Color( Color.red.getRed(), Color.red.getGreen(), Color.red.getBlue(), 64));
-    c.fillOval(mouseX - (ballDiameter / 2), mouseY - (ballDiameter / 2), ballDiameter, ballDiameter);
   }
   
   
   private void drawForDebugViewDetails(Graphics2D c)
   {
-    c.setColor(Color.black);
-    c.fillRect(0, 0, gameEngine.getCanvasWidth(), gameEngine.getCanvasHeight());
     
-    c.setColor(Color.red);
-    c.fillOval(mouseX - (ballDiameter / 2), mouseY - (ballDiameter / 2), ballDiameter, ballDiameter);
     
     drawButtons(c, CurrentScreen.DEBUG_VIEW_DETAILS);
     drawRegions(c, CurrentScreen.DEBUG_VIEW_DETAILS);
-    
-    c.setColor(new Color( Color.red.getRed(), Color.red.getGreen(), Color.red.getBlue(), 64));
-    c.fillOval(mouseX - (ballDiameter / 2), mouseY - (ballDiameter / 2), ballDiameter, ballDiameter);
   }
   
   
   
   private void drawForLoadingBeforeLevel(Graphics2D c)
   {
-    c.setColor(Color.black);
-    c.fillRect(0, 0, gameEngine.getCanvasWidth(), gameEngine.getCanvasHeight());
     
     c.setColor(Color.red);
     c.fillOval(mouseX - (ballDiameter / 2), mouseY - (ballDiameter / 2), ballDiameter, ballDiameter);
@@ -205,15 +218,11 @@ public class GraphicsEngine
     drawButtons(c, CurrentScreen.LOADING_BEFORE_LEVEL);
     drawRegions(c, CurrentScreen.LOADING_BEFORE_LEVEL);
     
-    c.setColor(new Color( Color.red.getRed(), Color.red.getGreen(), Color.red.getBlue(), 64));
-    c.fillOval(mouseX - (ballDiameter / 2), mouseY - (ballDiameter / 2), ballDiameter, ballDiameter);
   }
   
 
   private void drawForInGameMain(Graphics2D c)
   {
-    c.setColor(Color.black);
-    c.fillRect(0, 0, gameEngine.getCanvasWidth(), gameEngine.getCanvasHeight());
     
     c.setColor(Color.red);
     c.fillOval(mouseX - (ballDiameter / 2), mouseY - (ballDiameter / 2), ballDiameter, ballDiameter);
@@ -223,15 +232,11 @@ public class GraphicsEngine
     drawButtons(c, CurrentScreen.IN_GAME_MAIN);
     drawRegions(c, CurrentScreen.IN_GAME_MAIN);
     
-    c.setColor(new Color( Color.red.getRed(), Color.red.getGreen(), Color.red.getBlue(), 64));
-    c.fillOval(mouseX - (ballDiameter / 2), mouseY - (ballDiameter / 2), ballDiameter, ballDiameter);
   }
   
   
   private void drawForInGameViewDetails(Graphics2D c)
   {
-    c.setColor(Color.black);
-    c.fillRect(0, 0, gameEngine.getCanvasWidth(), gameEngine.getCanvasHeight());
     
     c.setColor(Color.red);
     c.fillOval(mouseX - (ballDiameter / 2), mouseY - (ballDiameter / 2), ballDiameter, ballDiameter);
@@ -239,8 +244,19 @@ public class GraphicsEngine
     drawButtons(c, CurrentScreen.IN_GAME_VIEW_DETAILS);
     drawRegions(c, CurrentScreen.IN_GAME_VIEW_DETAILS);
     
-    c.setColor(new Color( Color.red.getRed(), Color.red.getGreen(), Color.red.getBlue(), 64));
-    c.fillOval(mouseX - (ballDiameter / 2), mouseY - (ballDiameter / 2), ballDiameter, ballDiameter);
+  }
+  
+  private void drawForPreLoad(Graphics2D c)
+  {
+    for( int i = 0; i < buttonsToDraw.size(); i++ )
+    {
+      if( buttonsScreenContext.get(i) == CurrentScreen.PRE_LOAD || 
+            buttonsScreenContext.get(i) == CurrentScreen.UNIVERSAL )
+      {
+        buttonsToDraw.get(i).drawButton(buttonsToDraw.get(i).isCursorOn(mouseX, mouseY), c,
+              cameraPosition);
+      }
+    }
   }
   
   
